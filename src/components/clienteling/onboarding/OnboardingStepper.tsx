@@ -32,15 +32,14 @@ export function OnboardingStepper({ steps, current, onSelect }: Props) {
               <li key={s.id} className="flex flex-col items-center text-center w-1/3">
                 <button
                   type="button"
-                  onClick={() => s.id < current && onSelect?.(s.id as 1 | 2 | 3)}
-                  disabled={s.id > current}
+                  onClick={() => onSelect?.(s.id as 1 | 2 | 3)}
                   className={cn(
                     "size-10 rounded-full grid place-items-center text-sm font-medium transition border-2",
                     done && "bg-primary text-primary-foreground border-primary",
                     active &&
                       "bg-background text-primary border-primary ring-4 ring-primary/15",
                     !done && !active && "bg-background text-muted-foreground border-border",
-                    s.id < current && "cursor-pointer hover:scale-105",
+                    "cursor-pointer hover:scale-105",
                   )}
                   aria-current={active ? "step" : undefined}
                 >
