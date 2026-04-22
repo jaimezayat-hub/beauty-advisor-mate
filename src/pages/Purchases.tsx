@@ -15,21 +15,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import { Link, useSearchParams } from "react-router-dom";
+import { SEED_PRODUCTS } from "@/data/seed";
 
 type Line = { product: Product; qty: number };
 
 export default function Purchases() {
   const user = useCurrentUser()!;
   const { consumers, purchases, users, addPurchase } = useApp();
-  const products = useApp((s) => s.consumers && useApp.getState());
-  const allProducts = useApp.getState();
-  // products live in seed; access via store getter:
-  const SEED = useApp.getState();
-  void products; void allProducts; void SEED;
-
-  // We can read products from seed module — simpler.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const PRODUCTS = require("@/data/seed").SEED_PRODUCTS as Product[];
+  const PRODUCTS = SEED_PRODUCTS;
 
   const [params] = useSearchParams();
   const preConsumerId = params.get("consumerId");
