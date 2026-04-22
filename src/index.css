@@ -2,95 +2,130 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* L'Oréal Luxe Clienteling — Design System
+   Two brand themes: Lancôme (default) and YSL.
+   Switch via [data-brand="ysl"] on <html>. All colors HSL. */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+  /* ============ LANCÔME (default) ============ */
+  :root,
+  [data-brand="lancome"] {
+    /* Brand palette */
+    --brand-primary: 343 56% 35%;        /* #8B2645 burgundy */
+    --brand-primary-soft: 343 45% 50%;
+    --brand-accent: 354 51% 81%;         /* #E8B4B8 rose */
+    --brand-cream: 38 35% 96%;           /* #FAF7F2 */
+    --brand-ink: 343 30% 12%;
+
+    --background: 38 35% 96%;
+    --foreground: 343 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 343 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 343 30% 12%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 343 56% 35%;
+    --primary-foreground: 38 35% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 38 30% 92%;
+    --secondary-foreground: 343 40% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 38 25% 90%;
+    --muted-foreground: 343 12% 38%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 354 51% 81%;
+    --accent-foreground: 343 56% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 142 45% 38%;
+    --warning: 38 85% 50%;
+    --gold: 42 55% 52%;
 
-    --radius: 0.5rem;
+    --border: 38 22% 86%;
+    --input: 38 22% 86%;
+    --ring: 343 56% 35%;
 
-    --sidebar-background: 0 0% 98%;
+    --radius: 0.625rem;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-background: 343 40% 14%;
+    --sidebar-foreground: 38 35% 92%;
+    --sidebar-primary: 354 51% 81%;
+    --sidebar-primary-foreground: 343 56% 20%;
+    --sidebar-accent: 343 35% 22%;
+    --sidebar-accent-foreground: 38 35% 96%;
+    --sidebar-border: 343 30% 22%;
+    --sidebar-ring: 354 51% 81%;
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --gradient-brand: linear-gradient(135deg, hsl(343 56% 35%) 0%, hsl(343 45% 25%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(343 56% 30%) 0%, hsl(354 40% 55%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(38 35% 98%) 0%, hsl(354 30% 92%) 100%);
+    --shadow-luxe: 0 20px 60px -20px hsl(343 56% 25% / 0.35);
+    --shadow-card: 0 4px 24px -6px hsl(343 30% 30% / 0.12);
+    --font-display: "Playfair Display", Georgia, serif;
+    --font-body: "DM Sans", system-ui, sans-serif;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  /* ============ YSL ============ */
+  [data-brand="ysl"] {
+    --brand-primary: 0 0% 0%;            /* Noir */
+    --brand-primary-soft: 0 0% 12%;
+    --brand-accent: 46 60% 52%;          /* #D4AF37 dorado */
+    --brand-cream: 0 0% 96%;
+    --brand-ink: 0 0% 4%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --background: 0 0% 6%;
+    --foreground: 46 30% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 46 25% 94%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 46 25% 94%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 46 60% 52%;
+    --primary-foreground: 0 0% 4%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 46 25% 92%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 46 8% 65%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 46 60% 52%;
+    --accent-foreground: 0 0% 4%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --destructive: 354 100% 38%;         /* #C20016 rouge */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 50% 45%;
+    --warning: 46 80% 55%;
+    --gold: 46 60% 52%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 16%;
+    --ring: 46 60% 52%;
+
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 46 25% 88%;
+    --sidebar-primary: 46 60% 52%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 46 60% 52%;
+    --sidebar-border: 0 0% 14%;
+    --sidebar-ring: 46 60% 52%;
+
+    --gradient-brand: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 14%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(354 100% 22%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 4%) 100%);
+    --shadow-luxe: 0 24px 70px -20px hsl(46 60% 30% / 0.45);
+    --shadow-card: 0 4px 28px -6px hsl(0 0% 0% / 0.55);
+    --font-display: "Playfair Display", Georgia, serif;
+    --font-body: "DM Sans", system-ui, sans-serif;
   }
 }
 
@@ -98,8 +133,44 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  html, body, #root { height: 100%; }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+    font-feature-settings: "ss01", "cv11";
   }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .text-balance { text-wrap: balance; }
+  .glass {
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  .gradient-brand { background: var(--gradient-brand); }
+  .gradient-hero { background: var(--gradient-hero); }
+  .gradient-soft { background: var(--gradient-soft); }
+  .shadow-luxe { box-shadow: var(--shadow-luxe); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+
+  .hairline {
+    background-image: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
+    height: 1px;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in { animation: fadeIn 0.5s ease-out both; }
+  .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 }

@@ -13,12 +13,26 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["Playfair Display", "Georgia", "serif"],
+        sans: ["DM Sans", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        success: "hsl(var(--success))",
+        warning: "hsl(var(--warning))",
+        gold: "hsl(var(--gold))",
+        brand: {
+          DEFAULT: "hsl(var(--brand-primary))",
+          soft: "hsl(var(--brand-primary-soft))",
+          accent: "hsl(var(--brand-accent))",
+          cream: "hsl(var(--brand-cream))",
+          ink: "hsl(var(--brand-ink))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -62,6 +76,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        "gradient-brand": "var(--gradient-brand)",
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-soft": "var(--gradient-soft)",
+      },
+      boxShadow: {
+        luxe: "var(--shadow-luxe)",
+        card: "var(--shadow-card)",
       },
       keyframes: {
         "accordion-down": {
