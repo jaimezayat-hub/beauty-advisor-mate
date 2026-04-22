@@ -56,10 +56,6 @@ export default function NewConsumer() {
     Object.values(errors.consent).every((e) => !e);
 
   const goNext = () => {
-    if (!stepValid) {
-      toast.error("Completa los campos requeridos antes de continuar");
-      return;
-    }
     setStep((s) => (s < 3 ? ((s + 1) as 1 | 2 | 3) : s));
   };
 
@@ -148,7 +144,7 @@ export default function NewConsumer() {
         </p>
 
         {step < 3 ? (
-          <Button type="button" size="lg" onClick={goNext} disabled={!stepValid}>
+          <Button type="button" size="lg" onClick={goNext}>
             Continuar
             <ArrowRight className="size-4 ml-1" />
           </Button>
