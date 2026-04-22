@@ -77,14 +77,20 @@ export default function ConsumerProfile() {
           </Link>
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <ShoppingBag className="size-4 mr-1.5" /> Registrar compra
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/compras?consumerId=${c.id}`}>
+              <ShoppingBag className="size-4 mr-1.5" /> Registrar compra
+            </Link>
           </Button>
-          <Button variant="outline" size="sm">
-            <Sparkles className="size-4 mr-1.5" /> Recomendar
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/recomendaciones?consumerId=${c.id}`}>
+              <Sparkles className="size-4 mr-1.5" /> Recomendar
+            </Link>
           </Button>
-          <Button size="sm">
-            <Calendar className="size-4 mr-1.5" /> Agendar
+          <Button asChild size="sm">
+            <Link to="/agenda">
+              <Calendar className="size-4 mr-1.5" /> Agendar
+            </Link>
           </Button>
         </div>
       </div>
