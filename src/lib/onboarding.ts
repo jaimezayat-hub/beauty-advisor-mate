@@ -71,11 +71,19 @@ export const emptyOnboarding = (): OnboardingDraft => ({
 
 export type ErrorMap = Record<string, string>;
 
+function parseLocalDate(iso: string): Date | null {
+  if (!iso) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export function validateIdentity(d: OnboardingDraft): ErrorMap {
   const today = new Date();
   const minDate = new Date(today.getFullYear() - 110, 0, 1);
   const maxDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
-  const birth = d.birthDate ? new Date(d.birthDate) : null;
+  const birth = parseLocalDate(d.birthDate);
 
   return {
     firstName:
@@ -92,9 +100,13 @@ export function validateIdentity(d: OnboardingDraft): ErrorMap {
           : "",
     birthDate: !d.birthDate
       ? "Selecciona una fecha"
-      : birth && (birth < minDate || birth > maxDate)
-        ? "Edad fuera de rango (mínimo 13 años)"
-        : "",
+      : !birth
+        ? "Fecha inválida"
+        : birth > maxDate
+          ? "La clienta debe tener al menos 13 años"
+          : birth < minDate
+            ? "Fecha fuera de rango"
+            : "",
     phone:
       d.phone.replace(/\D/g, "").length !== 10
         ? "El celular debe tener 10 dígitos"
@@ -121,9 +133,8 @@ export function validateConsent(d: OnboardingDraft): ErrorMap {
 }
 
 export function ageFromIso(iso: string): number | null {
-  if (!iso) return null;
-  const b = new Date(iso);
-  if (isNaN(b.getTime())) return null;
+  const b = parseLocalDate(iso);
+  if (!b) return null;
   const now = new Date();
   let age = now.getFullYear() - b.getFullYear();
   const m = now.getMonth() - b.getMonth();
