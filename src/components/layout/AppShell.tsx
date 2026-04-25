@@ -9,6 +9,7 @@ import {
   LogOut,
   MessageCircle,
   PieChart,
+  BarChart3,
   Search,
   ShoppingBag,
   Sparkles,
@@ -27,6 +28,7 @@ const NAV = [
   { to: "/compras", label: "Compras", icon: ShoppingBag },
   { to: "/agenda", label: "Agenda", icon: Calendar },
   { to: "/seguimiento", label: "Seguimiento", icon: MessageCircle },
+  { to: "/desempeno", label: "Desempeño", icon: BarChart3, performance: true },
   { to: "/reportes", label: "Reportes", icon: PieChart, managerOnly: true },
   { to: "/configuracion", label: "Configuración", icon: Cog },
 ];
@@ -117,7 +119,7 @@ export function AppShell() {
               }
             >
               <item.icon className="size-[18px] shrink-0" />
-              {item.label}
+              {item.performance ? (isManager ? "Desempeño del Equipo" : "Mi Desempeño") : item.label}
             </NavLink>
           ))}
         </nav>
