@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { Consumer } from "@/lib/types";
 import {
+  IPAD_DEVICE_ID,
   PRIVACY_VERSION,
   emptyOnboarding,
   validateBeauty,
@@ -81,7 +82,15 @@ export default function NewConsumer() {
       birthDate: draft.birthDate,
       phone: draft.phone.replace(/\D/g, ""),
       email: draft.email.trim().toLowerCase(),
-      privacy: { accepted: true, acceptedAt: now, version: PRIVACY_VERSION },
+      privacy: {
+        accepted: true,
+        acceptedAt: now,
+        version: PRIVACY_VERSION,
+        signaturePng: draft.signaturePng,
+        signedByBaName: user.name,
+        signedAtStoreName: "Counter demo iPad",
+        deviceId: IPAD_DEVICE_ID,
+      },
       consentSMS: draft.consentSMS,
       consentEmail: draft.consentEmail,
       consentWhatsApp: draft.consentWhatsApp,
@@ -151,7 +160,7 @@ export default function NewConsumer() {
         ) : (
           <Button type="button" size="lg" onClick={submit} disabled={!allValid}>
             <Check className="size-4 mr-1" />
-            Guardar consumidora
+            Confirmar y guardar
           </Button>
         )}
       </div>
