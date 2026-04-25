@@ -4,19 +4,19 @@ import type { Segment } from "@/lib/types";
 const STYLES: Record<Segment, { label: string; className: string }> = {
   VIP: {
     label: "VIP",
-    className: "bg-gold/15 text-gold border-gold/40",
+    className: "bg-[hsl(var(--segment-vip-bg))] text-[hsl(var(--segment-vip-text))] border-[hsl(var(--segment-vip-border))]",
   },
   Recurrente: {
     label: "Recurrente",
-    className: "bg-primary/10 text-primary border-primary/30",
+    className: "bg-[hsl(var(--segment-recurrent-bg))] text-[hsl(var(--segment-recurrent-text))] border-[hsl(var(--segment-recurrent-border))]",
   },
   Nueva: {
     label: "Nueva",
-    className: "bg-success/15 text-success border-success/40",
+    className: "bg-[hsl(var(--segment-new-bg))] text-[hsl(var(--segment-new-text))] border-[hsl(var(--segment-new-border))]",
   },
   EnRiesgo: {
     label: "En Riesgo",
-    className: "bg-destructive/10 text-destructive border-destructive/40",
+    className: "bg-[hsl(var(--segment-risk-bg))] text-[hsl(var(--segment-risk-text))] border-[hsl(var(--segment-risk-border))]",
   },
 };
 
