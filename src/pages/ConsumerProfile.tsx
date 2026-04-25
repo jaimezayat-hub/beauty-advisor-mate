@@ -3,6 +3,7 @@ import { useApp } from "@/store/useApp";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConsumerAvatar } from "@/components/clienteling/Avatar";
 import { SegmentBadge } from "@/components/clienteling/SegmentBadge";
 import {
@@ -19,6 +20,8 @@ import {
   ArrowLeft,
   Cake,
   Calendar,
+  CheckCircle2,
+  Download,
   Mail,
   MessageCircle,
   Phone,
@@ -42,6 +45,7 @@ export default function ConsumerProfile() {
     followUps,
     messages,
     users,
+    stores,
   } = useApp();
   const c = consumers.find((x) => x.id === id);
   if (!c) return <Navigate to="/consumidoras" replace />;
@@ -55,6 +59,7 @@ export default function ConsumerProfile() {
 
   const total = myPurchases.reduce((s, p) => s + p.total, 0);
   const ba = users.find((u) => u.id === c.assignedBaId);
+  const signed = Boolean(c.privacy.signaturePng);
 
   const birthdayDays = daysUntilNextBirthday(c.birthDate);
   const inactiveDays = c.lastContactAt ? daysBetween(c.lastContactAt) : null;
@@ -129,6 +134,13 @@ export default function ConsumerProfile() {
             text={`⚠️ En riesgo: sin contacto hace ${inactiveDays} días.`}
           />
         )}
+        {!signed && (
+          <AlertBanner
+            tone="warning"
+            icon={<AlertTriangle className="size-4" />}
+            text="⚠️ Esta clienta no tiene firma digital del aviso de privacidad. Solicita su firma en la próxima visita."
+          />
+        )}
       </div>
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-6">
@@ -154,7 +166,7 @@ export default function ConsumerProfile() {
               <InfoLine icon={<Phone className="size-3.5" />} value={formatPhoneMx(c.phone)} />
               <InfoLine icon={<Mail className="size-3.5" />} value={c.email} truncate />
               <InfoLine icon={<Cake className="size-3.5" />} value={formatDate(c.birthDate)} />
-              <InfoLine icon={<Shield className="size-3.5" />} value={`Privacidad ${c.privacy.version}`} />
+              <InfoLine icon={<Shield className="size-3.5" />} value={signed ? `Firmado ${c.privacy.version}` : `Privacidad ${c.privacy.version}`} />
             </div>
 
             <div className="hairline my-5" />
@@ -225,6 +237,7 @@ export default function ConsumerProfile() {
                     {c.notes ?? "Sin notas registradas."}
                   </p>
                 </div>
+                <PrivacySignatureCard consumerName={fullName(c.firstName, c.lastName)} privacy={c.privacy} baName={ba?.name ?? "—"} storeName={c.privacy.signedAtStoreName ?? stores.find((s) => s.id === c.storeId)?.name ?? "—"} />
               </TabsContent>
 
               <TabsContent value="intereses" className="mt-0 space-y-6">
