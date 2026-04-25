@@ -178,6 +178,13 @@
     background-image: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
     height: 1px;
   }
+
+  .bg-gradient-brand,
+  .gradient-brand,
+  .bg-gradient-hero,
+  .gradient-hero {
+    background: hsl(var(--primary));
+  }
 }
 
 @layer utilities {
