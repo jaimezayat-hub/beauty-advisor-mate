@@ -147,7 +147,7 @@ export function AppShell() {
                 onClick={() => setActiveBrand("lancome")}
                 className={cn(
                    "flex-1 text-[10px] uppercase tracking-[0.12em] py-1.5 rounded-md transition-colors duration-150",
-                  activeBrand === "lancome"
+                    activeBrand === "lancome"
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "opacity-60 hover:opacity-100",
                 )}
