@@ -11,6 +11,7 @@ import type {
   Sample,
   Store,
   User,
+  BaKpiProfile,
 } from "@/lib/types";
 import {
   SEED_APPOINTMENTS,
@@ -21,6 +22,7 @@ import {
   SEED_SAMPLES,
   SEED_STORES,
   SEED_USERS,
+  SEED_BA_KPIS,
 } from "@/data/seed";
 
 interface AppState {
@@ -37,6 +39,7 @@ interface AppState {
   followUps: FollowUp[];
   samples: Sample[];
   messages: Message[];
+  baKpis: BaKpiProfile[];
   // Actions
   login: (userId: string) => void;
   logout: () => void;
@@ -61,6 +64,7 @@ const initialData = () => ({
   followUps: SEED_FOLLOWUPS,
   samples: SEED_SAMPLES,
   messages: [] as Message[],
+  baKpis: SEED_BA_KPIS,
 });
 
 export const useApp = create<AppState>()(
