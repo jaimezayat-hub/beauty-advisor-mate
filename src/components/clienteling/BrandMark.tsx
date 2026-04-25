@@ -21,7 +21,7 @@ export function BrandMark({ brand, variant = "default", className }: Props) {
   return (
     <div className={cn("flex flex-col items-start leading-tight", className)}>
       <span className="font-display text-[1.4em] tracking-[0.18em] font-bold uppercase text-primary">
-        Lancôme
+        LANCÔME
       </span>
       {variant !== "mono" && (
         <span className="text-[0.45em] tracking-[0.45em] uppercase opacity-70 mt-0.5">
