@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useApp, useCurrentUser } from "@/store/useApp";
+import { useApp, useCurrentStore, useCurrentUser } from "@/store/useApp";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { OnboardingStepper } from "@/components/clienteling/onboarding/OnboardingStepper";
 import { StepIdentity } from "@/components/clienteling/onboarding/StepIdentity";
@@ -28,6 +28,7 @@ const STEPS = [
 
 export default function NewConsumer() {
   const user = useCurrentUser()!;
+  const store = useCurrentStore();
   const navigate = useNavigate();
   const addConsumer = useApp((s) => s.addConsumer);
 
@@ -88,7 +89,7 @@ export default function NewConsumer() {
         version: PRIVACY_VERSION,
         signaturePng: draft.signaturePng,
         signedByBaName: user.name,
-        signedAtStoreName: "Counter demo iPad",
+        signedAtStoreName: store?.name ?? "Counter demo iPad",
         deviceId: IPAD_DEVICE_ID,
       },
       consentSMS: draft.consentSMS,
@@ -111,7 +112,7 @@ export default function NewConsumer() {
       notes: draft.notes.trim() || undefined,
     };
     addConsumer(c);
-    toast.success(`${c.firstName} fue registrada correctamente`);
+    toast.success("✓ Registro completado. El aviso de privacidad ha sido aceptado y firmado.");
     navigate(`/consumidoras/${c.id}`);
   };
 
