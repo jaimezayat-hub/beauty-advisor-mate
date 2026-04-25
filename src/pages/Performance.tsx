@@ -98,8 +98,8 @@ function KpiCard({ icon, label, value, hint, progress, donut }: KpiCardProps) {
         <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center [&_svg]:size-5">{icon}</div>
         {donut && <MiniDonut done={donut[0]} pending={donut[1]} />}
       </div>
-      <p className="text-xs uppercase tracking-widest text-muted-foreground mt-4">{label}</p>
-      <p className="font-display text-3xl mt-1 tabular-nums">{value}</p>
+      <p className="kpi-label mt-4">{label}</p>
+      <p className="kpi-number mt-2">{value}</p>
       <p className="text-xs text-muted-foreground mt-1">{hint}</p>
       {progress !== undefined && <Progress value={Math.min(progress, 100)} className="h-2 mt-4" />}
     </Card>
@@ -148,7 +148,7 @@ function TeamPanel({ profiles, users, compact = false }: { profiles: BaKpiProfil
       <Card className="shadow-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase tracking-widest text-muted-foreground">
+            <thead className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
               <tr>{[["name","BA"],["sales","Ventas"],["transactions","# Trans."],["ticket","Ticket"],["newConsumers","Registros"],["followUps","Seguimientos"],["conversion","Conversión"],["adoption","Adopción"],["activeDays","Días activa"],["status","Estado"]].map(([k,l]) => <th key={k} className="px-4 py-3 text-left font-medium cursor-pointer" onClick={() => setSort(k)}>{l}</th>)}</tr>
             </thead>
             <tbody className="divide-y divide-border">
