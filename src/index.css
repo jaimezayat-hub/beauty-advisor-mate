@@ -2,198 +2,152 @@
 @tailwind components;
 @tailwind utilities;
 
-/* L'Oréal Luxe Clienteling — Design System
-   Two brand themes: Lancôme (default) and YSL.
-   Switch via [data-brand="ysl"] on <html>. All colors HSL. */
+/* L'Oréal Luxe Clienteling — visual system only. All colors expressed as HSL tokens. */
 
 @layer base {
-  :root {
-  /* ============ LANCÔME (default) ============ */
   :root,
   [data-brand="lancome"] {
-    /* Brand palette */
-    --brand-primary: 338 60% 37%;        /* #98264F burgundy referencia */
-    --brand-primary-soft: 338 46% 46%;
-    --brand-accent: 354 51% 81%;         /* #E8B4B8 rose */
-    --brand-cream: 38 44% 96%;           /* #FAF7F2 */
-    --brand-ink: 30 6% 13%;
+    --burgundy-primary: 338 57% 35%;   /* #8B2645 */
+    --burgundy-primary-hover: 338 57% 27%; /* #6D1E38 */
+    --burgundy-light: 340 42% 53%;     /* #B85070 */
+    --burgundy-pale: 342 50% 96%;      /* #FAF0F3 */
+    --rose-accent: 356 51% 81%;        /* #E8B4B8 */
+    --cream-bg: 36 44% 96%;            /* #FAF7F2 */
+    --sidebar-bg: 0 0% 7%;             /* #111111 */
+    --sidebar-active: 0 0% 16%;        /* #2A2A2A */
+    --text-primary: 0 0% 10%;          /* #1A1A1A */
+    --text-secondary: 0 0% 42%;        /* #6B6B6B */
+    --text-muted: 0 0% 67%;            /* #AAAAAA */
+    --border-light: 0 0% 91%;          /* #E8E8E8 */
+    --success-green: 145 46% 34%;      /* #2E7D4F */
+    --warning-amber: 43 89% 38%;       /* #B8860B */
+    --danger-red: 6 59% 46%;           /* #C0392B */
+    --alert-bg: 0 56% 98%;             /* #FDF8F8 */
 
-    --background: 38 44% 96%;
-    --foreground: 30 6% 13%;
+    --brand-primary: var(--burgundy-primary);
+    --brand-primary-soft: var(--burgundy-light);
+    --brand-accent: var(--rose-accent);
+    --brand-cream: var(--cream-bg);
+    --brand-ink: var(--text-primary);
 
+    --background: var(--cream-bg);
+    --foreground: var(--text-primary);
     --card: 0 0% 100%;
-    --card-foreground: 343 30% 12%;
-
+    --card-foreground: var(--text-primary);
     --popover: 0 0% 100%;
-    --popover-foreground: 343 30% 12%;
-
-    --primary: 338 60% 37%;
-    --primary-foreground: 38 35% 98%;
-
-    --secondary: 35 22% 91%;
-    --secondary-foreground: 30 6% 18%;
-
-    --muted: 34 22% 92%;
-    --muted-foreground: 28 5% 43%;
-
-    --accent: 354 51% 81%;
-    --accent-foreground: 343 56% 25%;
-
-    --destructive: 0 70% 45%;
+    --popover-foreground: var(--text-primary);
+    --primary: var(--burgundy-primary);
+    --primary-hover: var(--burgundy-primary-hover);
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: var(--burgundy-primary);
+    --muted: var(--burgundy-pale);
+    --muted-foreground: var(--text-secondary);
+    --accent: var(--rose-accent);
+    --accent-foreground: var(--burgundy-primary);
+    --destructive: var(--danger-red);
     --destructive-foreground: 0 0% 100%;
-
-    --success: 142 45% 38%;
-    --warning: 38 85% 50%;
-    --gold: 42 55% 52%;
-
-    --border: 32 29% 88%;
-    --input: 32 29% 88%;
-    --ring: 338 60% 37%;
-
+    --success: var(--success-green);
+    --warning: var(--warning-amber);
+    --gold: 46 65% 52%;
+    --border: var(--border-light);
+    --input: var(--burgundy-primary);
+    --ring: var(--burgundy-primary);
     --radius: 0.75rem;
 
-    --sidebar-background: 60 4% 5%;
-    --sidebar-foreground: 35 16% 82%;
-    --sidebar-primary: 338 60% 37%;
-    --sidebar-primary-foreground: 38 44% 98%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 35 16% 82%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 354 51% 81%;
+    --sidebar-background: var(--sidebar-bg);
+    --sidebar-foreground: var(--text-secondary);
+    --sidebar-primary: var(--burgundy-primary);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: var(--sidebar-active);
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: var(--burgundy-primary);
 
-    --gradient-brand: hsl(338 60% 37%);
-    --gradient-hero: hsl(338 60% 37%);
-    --gradient-soft: linear-gradient(180deg, hsl(38 44% 98%) 0%, hsl(34 30% 94%) 100%);
+    --segment-vip-bg: 45 87% 94%;
+    --segment-vip-text: var(--warning-amber);
+    --segment-vip-border: 46 65% 52%;
+    --segment-recurrent-bg: var(--burgundy-pale);
+    --segment-recurrent-text: var(--burgundy-primary);
+    --segment-recurrent-border: var(--rose-accent);
+    --segment-new-bg: 140 38% 95%;
+    --segment-new-text: var(--success-green);
+    --segment-new-border: 139 39% 75%;
+    --segment-risk-bg: 0 68% 97%;
+    --segment-risk-text: var(--danger-red);
+    --segment-risk-border: 0 68% 80%;
+
+    --gradient-brand: linear-gradient(135deg, hsl(var(--burgundy-primary)) 0%, hsl(var(--burgundy-light)) 100%);
+    --gradient-hero: hsl(var(--burgundy-primary));
+    --gradient-soft: linear-gradient(180deg, hsl(var(--cream-bg)) 0%, hsl(var(--burgundy-pale)) 100%);
     --shadow-luxe: 0 2px 8px hsl(0 0% 0% / 0.06);
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.06);
-    --font-display: "Playfair Display", Georgia, serif;
-    --font-body: "DM Sans", system-ui, sans-serif;
+    --font-display: "Cormorant Garamond", serif;
+    --font-body: "DM Sans", sans-serif;
   }
 
-  /* ============ YSL ============ */
   [data-brand="ysl"] {
-    --brand-primary: 0 0% 0%;            /* Noir */
-    --brand-primary-soft: 0 0% 12%;
-    --brand-accent: 46 60% 52%;          /* #D4AF37 dorado */
-    --brand-cream: 0 0% 96%;
-    --brand-ink: 0 0% 4%;
-
-    --background: 0 0% 5%;
-    --foreground: 46 30% 92%;
-
-    --card: 0 0% 8%;
-    --card-foreground: 46 25% 94%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 46 25% 94%;
-
-    --primary: 46 60% 52%;
-    --primary-foreground: 0 0% 4%;
-
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 46 25% 92%;
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 46 8% 65%;
-
-    --accent: 46 60% 52%;
-    --accent-foreground: 0 0% 4%;
-
-    --destructive: 354 100% 38%;         /* #C20016 rouge */
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 50% 45%;
-    --warning: 46 80% 55%;
-    --gold: 46 60% 52%;
-
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 46 60% 52%;
-
-    --sidebar-background: 0 0% 0%;
-    --sidebar-foreground: 46 25% 88%;
-    --sidebar-primary: 46 60% 52%;
+    --burgundy-primary: 46 65% 52%;     /* #D4AF37 */
+    --burgundy-primary-hover: 46 65% 44%;
+    --burgundy-light: 48 77% 60%;       /* #E8C84A */
+    --burgundy-pale: 60 44% 7%;         /* #1A1A0A */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: var(--burgundy-primary);
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: var(--burgundy-primary);
+    --muted: var(--burgundy-pale);
+    --muted-foreground: var(--text-secondary);
+    --accent: var(--burgundy-primary);
+    --accent-foreground: 0 0% 0%;
+    --input: var(--burgundy-primary);
+    --ring: var(--burgundy-primary);
+    --sidebar-primary: var(--burgundy-primary);
     --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 46 60% 52%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 46 60% 52%;
-
-    --gradient-brand: hsl(46 60% 52%);
+    --gradient-brand: linear-gradient(135deg, hsl(var(--burgundy-primary)) 0%, hsl(var(--burgundy-light)) 100%);
     --gradient-hero: hsl(0 0% 0%);
-    --gradient-soft: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 4%) 100%);
-    --shadow-luxe: 0 2px 8px hsl(0 0% 0% / 0.2);
-    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.22);
-    --font-display: "Playfair Display", Georgia, serif;
-    --font-body: "DM Sans", system-ui, sans-serif;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
   html, body, #root { height: 100%; }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
-    font-feature-settings: "ss01", "cv11";
+    color: hsl(var(--text-primary));
   }
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
+    font-weight: 500;
     letter-spacing: 0;
   }
+  table tbody tr { border-bottom: 1px solid hsl(0 0% 94%); }
+  table tbody tr:last-child { border-bottom-width: 0; }
 }
 
 @layer components {
   .text-balance { text-wrap: balance; }
-  .glass {
-    background: hsl(var(--card) / 0.72);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-  }
+  .glass { background: hsl(var(--card) / 0.72); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
   .gradient-brand { background: var(--gradient-brand); }
   .gradient-hero { background: var(--gradient-hero); }
   .gradient-soft { background: var(--gradient-soft); }
-  .shadow-luxe { box-shadow: var(--shadow-luxe); }
-  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-luxe, .shadow-card { box-shadow: var(--shadow-card); }
 
-  .kpi-label {
-    @apply text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold;
-  }
+  .kpi-label { @apply text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold; font-family: var(--font-body); color: hsl(var(--text-muted)); }
+  .kpi-number { @apply text-5xl font-light leading-none tabular-nums; font-family: var(--font-body); }
+  .hairline { background: hsl(var(--border)); height: 1px; }
 
-  .kpi-number {
-    @apply font-display text-5xl font-light leading-none tabular-nums;
-  }
+  .bg-gradient-brand { background: var(--gradient-brand); }
+  .bg-gradient-hero { background: var(--gradient-hero); }
 
-  table tbody tr {
-    @apply border-b border-border;
-  }
-
-  table tbody tr:last-child {
-    border-bottom-width: 0;
-  }
-
-  .hairline {
-    background-image: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
-    height: 1px;
-  }
-
-  .bg-gradient-brand,
-  .gradient-brand,
-  .bg-gradient-hero,
-  .gradient-hero {
-    background: hsl(var(--primary));
-  }
-
-  [data-brand="ysl"] .bg-gradient-hero,
-  [data-brand="ysl"] .gradient-hero {
+  [data-brand="ysl"] header,
+  [data-brand="ysl"] .app-header {
     background: hsl(0 0% 0%);
-  }
-
-  [data-brand="ysl"] .bg-gradient-brand,
-  [data-brand="ysl"] .gradient-brand {
-    background: hsl(var(--primary));
+    color: hsl(0 0% 100%);
   }
 
   [data-brand="ysl"] .rounded-full.bg-primary,
@@ -213,4 +167,3 @@
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-}
