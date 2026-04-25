@@ -185,6 +185,23 @@
   .gradient-hero {
     background: hsl(var(--primary));
   }
+
+  [data-brand="ysl"] .bg-gradient-hero,
+  [data-brand="ysl"] .gradient-hero {
+    background: hsl(0 0% 0%);
+  }
+
+  [data-brand="ysl"] .bg-gradient-brand,
+  [data-brand="ysl"] .gradient-brand {
+    background: hsl(var(--primary));
+  }
+
+  [data-brand="ysl"] .rounded-full.bg-primary,
+  [data-brand="ysl"] .bg-gradient-brand.rounded-full {
+    color: hsl(var(--primary));
+    background: hsl(0 0% 0%);
+    border: 1px solid hsl(var(--primary) / 0.35);
+  }
 }
 
 @layer utilities {
