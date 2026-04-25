@@ -33,6 +33,7 @@ import {
   Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { PrivacyConsent } from "@/lib/types";
 
 export default function ConsumerProfile() {
   const { id } = useParams();
@@ -458,13 +459,14 @@ function AlertBanner({
   icon,
   text,
 }: {
-  tone: "accent" | "primary" | "destructive";
+  tone: "accent" | "primary" | "warning" | "destructive";
   icon: React.ReactNode;
   text: string;
 }) {
   const cls = {
     accent: "bg-accent/30 border-accent/50 text-accent-foreground",
     primary: "bg-primary/10 border-primary/30 text-primary",
+    warning: "bg-warning/15 border-warning/35 text-warning",
     destructive: "bg-destructive/10 border-destructive/30 text-destructive",
   }[tone];
   return (
