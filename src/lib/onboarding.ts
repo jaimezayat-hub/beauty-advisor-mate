@@ -7,6 +7,7 @@ import type {
 } from "@/lib/types";
 
 export const PRIVACY_VERSION = "v1.2 — abr 2026";
+export const IPAD_DEVICE_ID = "iPad-Counter-MX-042";
 
 export const PRIVACY_TEXT = `Aviso de Privacidad — L'Oréal México S.A. de C.V.
 
@@ -18,7 +19,7 @@ Finalidades primarias: prestación de servicios de Beauty Advisor, gestión de t
 
 Finalidades secundarias (requieren consentimiento explícito): envío de comunicaciones promocionales por SMS, correo electrónico y/o WhatsApp; invitaciones a eventos exclusivos; programas de lealtad.
 
-Derechos ARCO: puedes ejercer tus derechos de Acceso, Rectificación, Cancelación u Oposición escribiendo a privacidad@loreal.mx.
+Derechos ARCO: puedes ejercer tus derechos de Acceso, Rectificación, Cancelación u Oposición escribiendo a privacidad.mexico@loreal.com.
 
 Versión: ${PRIVACY_VERSION}.`;
 
@@ -45,6 +46,7 @@ export interface OnboardingDraft {
   consentSMS: boolean;
   consentEmail: boolean;
   consentWhatsApp: boolean;
+  signaturePng: string;
 }
 
 export const emptyOnboarding = (): OnboardingDraft => ({
@@ -67,6 +69,7 @@ export const emptyOnboarding = (): OnboardingDraft => ({
   consentSMS: false,
   consentEmail: false,
   consentWhatsApp: false,
+  signaturePng: "",
 });
 
 export type ErrorMap = Record<string, string>;
@@ -129,6 +132,7 @@ export function validateBeauty(d: OnboardingDraft): ErrorMap {
 export function validateConsent(d: OnboardingDraft): ErrorMap {
   return {
     privacy: !d.privacy ? "Es obligatorio aceptar el aviso de privacidad" : "",
+    signaturePng: !d.signaturePng ? "La firma digital es obligatoria" : "",
   };
 }
 
