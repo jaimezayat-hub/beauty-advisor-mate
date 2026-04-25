@@ -519,6 +519,66 @@ function ConsentRow({ label, on }: { label: string; on: boolean }) {
   );
 }
 
+function PrivacySignatureCard({
+  consumerName,
+  privacy,
+  baName,
+  storeName,
+}: {
+  consumerName: string;
+  privacy: PrivacyConsent;
+  baName: string;
+  storeName: string;
+}) {
+  const signed = Boolean(privacy.signaturePng);
+  const downloadPdf = () => {
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Constancia</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#211}h1{font-size:22px}img{max-width:520px;border:1px solid #ddd;border-radius:12px;padding:16px}.ok{color:#157a3b;font-weight:700}</style></head><body><h1>Constancia de Aviso de Privacidad</h1><p class="ok">Aviso firmado digitalmente</p><p><b>Clienta:</b> ${consumerName}</p><p><b>Fecha y hora:</b> ${formatDateTime(privacy.acceptedAt)}</p><p><b>Versión:</b> ${privacy.version}</p><p><b>Beauty Advisor:</b> ${privacy.signedByBaName ?? baName}</p><p><b>Tienda:</b> ${storeName}</p><p><b>Dispositivo:</b> ${privacy.deviceId ?? "—"}</p>${privacy.signaturePng ? `<img src="${privacy.signaturePng}" />` : ""}</body></html>`;
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.print();
+  };
+
+  return (
+    <div className="rounded-lg border border-border p-4 bg-muted/20">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Aviso de privacidad</p>
+          {signed ? (
+            <p className="inline-flex items-center gap-2 rounded-full bg-success/15 px-3 py-1 text-sm text-success">
+              <CheckCircle2 className="size-4" /> Aviso firmado digitalmente
+            </p>
+          ) : (
+            <p className="text-sm text-warning">Firma digital pendiente.</p>
+          )}
+          {signed && <p className="text-xs text-muted-foreground mt-2">Firmado el {formatDateTime(privacy.acceptedAt)} · {privacy.version}</p>}
+        </div>
+        {signed && (
+          <Dialog>
+            <DialogTrigger asChild><Button variant="outline" size="sm">Ver constancia</Button></DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader><DialogTitle>Constancia de firma digital</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <img src={privacy.signaturePng} alt="Firma digital de aviso de privacidad" className="w-full rounded-md bg-card" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <SummaryCard label="Fecha y hora" value={formatDateTime(privacy.acceptedAt)} />
+                  <SummaryCard label="Versión" value={privacy.version} />
+                  <SummaryCard label="BA" value={privacy.signedByBaName ?? baName} />
+                  <SummaryCard label="Dispositivo" value={privacy.deviceId ?? "—"} />
+                </div>
+                <Button onClick={downloadPdf}><Download className="size-4 mr-1.5" /> Descargar constancia</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border p-4">
