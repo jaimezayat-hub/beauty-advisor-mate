@@ -1,5 +1,6 @@
 import type {
   Appointment,
+  BaKpiProfile,
   Consumer,
   FollowUp,
   Product,
@@ -12,6 +13,9 @@ import type {
 
 const today = new Date();
 const iso = (d: Date) => d.toISOString();
+const demoSignature =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='620' height='220' viewBox='0 0 620 220'><rect width='620' height='220' fill='white'/><path d='M92 137c34-41 49-47 45-14-4 31-5 46 19 13 20-27 31-36 27-4-3 23 24 7 52-15 19-15 31-11 22 8-9 20 28 20 64-5 31-22 64-18 99 2 35 20 60 21 101 5' fill='none' stroke='%2317120f' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/><line x1='52' y1='162' x2='568' y2='162' stroke='%23d6d3cc' stroke-width='2'/></svg>");
 const daysAgo = (n: number) => {
   const d = new Date(today);
   d.setDate(d.getDate() - n);
@@ -263,7 +267,15 @@ const C = (over: Partial<Consumer>): Consumer => ({
   birthDate: over.birthDate!,
   phone: over.phone!,
   email: over.email!,
-  privacy: { accepted: true, acceptedAt: daysAgo(120), version: "v1.2" },
+  privacy: over.privacy ?? {
+    accepted: true,
+    acceptedAt: daysAgo(120),
+    version: "v2.1 — Abril 2026",
+    signaturePng: demoSignature,
+    signedByBaName: over.assignedBaId === "u-andrea" ? "Andrea Vega" : "Sofía Ramírez",
+    signedAtStoreName: "Palacio de Hierro Polanco",
+    deviceId: "iPad-Counter-MX-042",
+  },
   consentSMS: over.consentSMS ?? true,
   consentEmail: over.consentEmail ?? true,
   consentWhatsApp: over.consentWhatsApp ?? true,
