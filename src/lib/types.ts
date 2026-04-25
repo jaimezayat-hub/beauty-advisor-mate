@@ -134,6 +134,10 @@ export interface PrivacyConsent {
   accepted: boolean;
   acceptedAt?: string;
   version: string;
+  signaturePng?: string;
+  signedByBaName?: string;
+  signedAtStoreName?: string;
+  deviceId?: string;
 }
 
 export interface Consumer {
@@ -177,4 +181,34 @@ export interface Product {
   benefits: string[];
   imageHue: number; // for placeholder gradient
   inStock: boolean;
+}
+
+export interface WeeklyKpi {
+  week: string;
+  sales: number;
+  salesTarget: number;
+  newConsumers: number;
+  recommendations: number;
+  convertedRecommendations: number;
+}
+
+export interface BaKpiProfile {
+  baId: string;
+  monthlyTarget: number;
+  newConsumerTarget: number;
+  activeDays: number;
+  workDays: number;
+  followUpsCompleted: number;
+  followUpsPending: number;
+  birthdaysContacted: number;
+  birthdaysTotal: number;
+  replenishmentsActivated: number;
+  appointmentsScheduled: number;
+  appointmentsCompleted: number;
+  appointmentsCancelled: number;
+  adoptionScore: number;
+  rank: number;
+  rankTotal: number;
+  categorySales: Record<"Skincare" | "Makeup" | "Fragancia", number>;
+  history: WeeklyKpi[];
 }

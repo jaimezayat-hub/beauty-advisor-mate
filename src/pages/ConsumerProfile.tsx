@@ -3,6 +3,7 @@ import { useApp } from "@/store/useApp";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConsumerAvatar } from "@/components/clienteling/Avatar";
 import { SegmentBadge } from "@/components/clienteling/SegmentBadge";
 import {
@@ -19,6 +20,8 @@ import {
   ArrowLeft,
   Cake,
   Calendar,
+  CheckCircle2,
+  Download,
   Mail,
   MessageCircle,
   Phone,
@@ -30,6 +33,7 @@ import {
   Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { PrivacyConsent } from "@/lib/types";
 
 export default function ConsumerProfile() {
   const { id } = useParams();
@@ -42,6 +46,7 @@ export default function ConsumerProfile() {
     followUps,
     messages,
     users,
+    stores,
   } = useApp();
   const c = consumers.find((x) => x.id === id);
   if (!c) return <Navigate to="/consumidoras" replace />;
@@ -55,6 +60,7 @@ export default function ConsumerProfile() {
 
   const total = myPurchases.reduce((s, p) => s + p.total, 0);
   const ba = users.find((u) => u.id === c.assignedBaId);
+  const signed = Boolean(c.privacy.signaturePng);
 
   const birthdayDays = daysUntilNextBirthday(c.birthDate);
   const inactiveDays = c.lastContactAt ? daysBetween(c.lastContactAt) : null;
@@ -129,6 +135,13 @@ export default function ConsumerProfile() {
             text={`⚠️ En riesgo: sin contacto hace ${inactiveDays} días.`}
           />
         )}
+        {!signed && (
+          <AlertBanner
+            tone="warning"
+            icon={<AlertTriangle className="size-4" />}
+            text="⚠️ Esta clienta no tiene firma digital del aviso de privacidad. Solicita su firma en la próxima visita."
+          />
+        )}
       </div>
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-6">
@@ -154,7 +167,7 @@ export default function ConsumerProfile() {
               <InfoLine icon={<Phone className="size-3.5" />} value={formatPhoneMx(c.phone)} />
               <InfoLine icon={<Mail className="size-3.5" />} value={c.email} truncate />
               <InfoLine icon={<Cake className="size-3.5" />} value={formatDate(c.birthDate)} />
-              <InfoLine icon={<Shield className="size-3.5" />} value={`Privacidad ${c.privacy.version}`} />
+              <InfoLine icon={<Shield className="size-3.5" />} value={signed ? `Firmado ${c.privacy.version}` : `Privacidad ${c.privacy.version}`} />
             </div>
 
             <div className="hairline my-5" />
@@ -225,6 +238,7 @@ export default function ConsumerProfile() {
                     {c.notes ?? "Sin notas registradas."}
                   </p>
                 </div>
+                <PrivacySignatureCard consumerName={fullName(c.firstName, c.lastName)} privacy={c.privacy} baName={ba?.name ?? "—"} storeName={c.privacy.signedAtStoreName ?? stores.find((s) => s.id === c.storeId)?.name ?? "—"} />
               </TabsContent>
 
               <TabsContent value="intereses" className="mt-0 space-y-6">
@@ -445,13 +459,14 @@ function AlertBanner({
   icon,
   text,
 }: {
-  tone: "accent" | "primary" | "destructive";
+  tone: "accent" | "primary" | "warning" | "destructive";
   icon: React.ReactNode;
   text: string;
 }) {
   const cls = {
     accent: "bg-accent/30 border-accent/50 text-accent-foreground",
     primary: "bg-primary/10 border-primary/30 text-primary",
+    warning: "bg-warning/15 border-warning/35 text-warning",
     destructive: "bg-destructive/10 border-destructive/30 text-destructive",
   }[tone];
   return (
@@ -500,6 +515,66 @@ function ConsentRow({ label, on }: { label: string; on: boolean }) {
       >
         {on ? "Autorizado" : "No"}
       </span>
+    </div>
+  );
+}
+
+function PrivacySignatureCard({
+  consumerName,
+  privacy,
+  baName,
+  storeName,
+}: {
+  consumerName: string;
+  privacy: PrivacyConsent;
+  baName: string;
+  storeName: string;
+}) {
+  const signed = Boolean(privacy.signaturePng);
+  const downloadPdf = () => {
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Constancia</title><style>body{font-family:Arial,sans-serif;padding:40px;color:#211}h1{font-size:22px}img{max-width:520px;border:1px solid #ddd;border-radius:12px;padding:16px}.ok{color:#157a3b;font-weight:700}</style></head><body><h1>Constancia de Aviso de Privacidad</h1><p class="ok">Aviso firmado digitalmente</p><p><b>Clienta:</b> ${consumerName}</p><p><b>Fecha y hora:</b> ${formatDateTime(privacy.acceptedAt)}</p><p><b>Versión:</b> ${privacy.version}</p><p><b>Beauty Advisor:</b> ${privacy.signedByBaName ?? baName}</p><p><b>Tienda:</b> ${storeName}</p><p><b>Dispositivo:</b> ${privacy.deviceId ?? "—"}</p>${privacy.signaturePng ? `<img src="${privacy.signaturePng}" />` : ""}</body></html>`;
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.print();
+  };
+
+  return (
+    <div className="rounded-lg border border-border p-4 bg-muted/20">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Aviso de privacidad</p>
+          {signed ? (
+            <p className="inline-flex items-center gap-2 rounded-full bg-success/15 px-3 py-1 text-sm text-success">
+              <CheckCircle2 className="size-4" /> Aviso firmado digitalmente
+            </p>
+          ) : (
+            <p className="text-sm text-warning">Firma digital pendiente.</p>
+          )}
+          {signed && <p className="text-xs text-muted-foreground mt-2">Firmado el {formatDateTime(privacy.acceptedAt)} · {privacy.version}</p>}
+        </div>
+        {signed && (
+          <Dialog>
+            <DialogTrigger asChild><Button variant="outline" size="sm">Ver constancia</Button></DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader><DialogTitle>Constancia de firma digital</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <div className="rounded-lg border border-border bg-card p-4">
+                  <img src={privacy.signaturePng} alt="Firma digital de aviso de privacidad" className="w-full rounded-md bg-card" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <SummaryCard label="Fecha y hora" value={formatDateTime(privacy.acceptedAt)} />
+                  <SummaryCard label="Versión" value={privacy.version} />
+                  <SummaryCard label="BA" value={privacy.signedByBaName ?? baName} />
+                  <SummaryCard label="Dispositivo" value={privacy.deviceId ?? "—"} />
+                </div>
+                <Button onClick={downloadPdf}><Download className="size-4 mr-1.5" /> Descargar constancia</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
     </div>
   );
 }

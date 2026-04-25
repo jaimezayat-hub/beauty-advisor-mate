@@ -16,6 +16,7 @@ import Agenda from "./pages/Agenda";
 import FollowUpPage from "./pages/FollowUp";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Performance from "./pages/Performance";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/seguimiento" element={<FollowUpPage />} />
               <Route path="/reportes" element={<Reports />} />
+              <Route path="/desempeno" element={<Performance />} />
               <Route path="/configuracion" element={<Settings />} />
             </Route>
             <Route path="/index" element={<Navigate to="/" replace />} />

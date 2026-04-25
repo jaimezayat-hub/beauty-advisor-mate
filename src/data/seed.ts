@@ -1,5 +1,6 @@
 import type {
   Appointment,
+  BaKpiProfile,
   Consumer,
   FollowUp,
   Product,
@@ -12,6 +13,9 @@ import type {
 
 const today = new Date();
 const iso = (d: Date) => d.toISOString();
+const demoSignature =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='620' height='220' viewBox='0 0 620 220'><rect width='620' height='220' fill='white'/><path d='M92 137c34-41 49-47 45-14-4 31-5 46 19 13 20-27 31-36 27-4-3 23 24 7 52-15 19-15 31-11 22 8-9 20 28 20 64-5 31-22 64-18 99 2 35 20 60 21 101 5' fill='none' stroke='%2317120f' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/><line x1='52' y1='162' x2='568' y2='162' stroke='%23d6d3cc' stroke-width='2'/></svg>");
 const daysAgo = (n: number) => {
   const d = new Date(today);
   d.setDate(d.getDate() - n);
@@ -263,7 +267,15 @@ const C = (over: Partial<Consumer>): Consumer => ({
   birthDate: over.birthDate!,
   phone: over.phone!,
   email: over.email!,
-  privacy: { accepted: true, acceptedAt: daysAgo(120), version: "v1.2" },
+  privacy: over.privacy ?? {
+    accepted: true,
+    acceptedAt: daysAgo(120),
+    version: "v2.1 — Abril 2026",
+    signaturePng: demoSignature,
+    signedByBaName: over.assignedBaId === "u-andrea" ? "Andrea Vega" : "Sofía Ramírez",
+    signedAtStoreName: "Palacio de Hierro Polanco",
+    deviceId: "iPad-Counter-MX-042",
+  },
   consentSMS: over.consentSMS ?? true,
   consentEmail: over.consentEmail ?? true,
   consentWhatsApp: over.consentWhatsApp ?? true,
@@ -408,6 +420,7 @@ export const SEED_CONSUMERS: Consumer[] = [
     interests: ["Fragancia"],
     assignedBaId: "u-andrea",
     brand: "ysl",
+    privacy: { accepted: true, acceptedAt: daysAgo(5), version: "v1.2" },
     createdAt: daysAgo(5),
     lastContactAt: daysAgo(5),
     lastTransactionAt: daysAgo(5),
@@ -458,6 +471,7 @@ export const SEED_CONSUMERS: Consumer[] = [
     interests: ["Fragancia", "Makeup"],
     assignedBaId: "u-andrea",
     brand: "ysl",
+    privacy: { accepted: true, acceptedAt: daysAgo(140), version: "v1.2" },
     createdAt: daysAgo(380),
     lastContactAt: daysAgo(95),
     lastTransactionAt: daysAgo(140),
@@ -540,6 +554,7 @@ export const SEED_CONSUMERS: Consumer[] = [
     interests: ["Fragancia"],
     assignedBaId: "u-andrea",
     brand: "ysl",
+    privacy: { accepted: true, acceptedAt: daysAgo(60), version: "v1.2" },
     createdAt: daysAgo(190),
     lastContactAt: daysAgo(30),
     lastTransactionAt: daysAgo(60),
@@ -590,6 +605,7 @@ export const SEED_CONSUMERS: Consumer[] = [
     interests: ["Skincare"],
     assignedBaId: "u-sofia",
     brand: "lancome",
+    privacy: { accepted: true, acceptedAt: daysAgo(70), version: "v1.2" },
     createdAt: daysAgo(310),
     lastContactAt: daysAgo(42),
     lastTransactionAt: daysAgo(70),
@@ -638,6 +654,7 @@ export const SEED_CONSUMERS: Consumer[] = [
     interests: ["Makeup", "Fragancia"],
     assignedBaId: "u-andrea",
     brand: "ysl",
+    privacy: { accepted: true, acceptedAt: daysAgo(65), version: "v1.2" },
     createdAt: daysAgo(220),
     lastContactAt: daysAgo(40),
     lastTransactionAt: daysAgo(65),
@@ -795,5 +812,66 @@ export const SEED_SAMPLES: Sample[] = [
     sku: "LAN-AGV-SMP",
     followUpDate: daysFromNow(7),
     converted: true,
+  },
+];
+
+export const SEED_BA_KPIS: BaKpiProfile[] = [
+  {
+    baId: "u-sofia",
+    monthlyTarget: 380000,
+    newConsumerTarget: 18,
+    activeDays: 19,
+    workDays: 21,
+    followUpsCompleted: 18,
+    followUpsPending: 11,
+    birthdaysContacted: 5,
+    birthdaysTotal: 6,
+    replenishmentsActivated: 14,
+    appointmentsScheduled: 16,
+    appointmentsCompleted: 11,
+    appointmentsCancelled: 2,
+    adoptionScore: 91,
+    rank: 2,
+    rankTotal: 5,
+    categorySales: { Skincare: 196000, Makeup: 88000, Fragancia: 124000 },
+    history: [
+      { week: "S-7", sales: 72000, salesTarget: 82000, newConsumers: 3, recommendations: 9, convertedRecommendations: 4 },
+      { week: "S-6", sales: 81000, salesTarget: 82000, newConsumers: 4, recommendations: 10, convertedRecommendations: 5 },
+      { week: "S-5", sales: 94000, salesTarget: 85000, newConsumers: 5, recommendations: 12, convertedRecommendations: 7 },
+      { week: "S-4", sales: 88000, salesTarget: 85000, newConsumers: 4, recommendations: 11, convertedRecommendations: 6 },
+      { week: "S-3", sales: 105000, salesTarget: 90000, newConsumers: 6, recommendations: 14, convertedRecommendations: 8 },
+      { week: "S-2", sales: 97000, salesTarget: 90000, newConsumers: 5, recommendations: 13, convertedRecommendations: 7 },
+      { week: "S-1", sales: 116000, salesTarget: 95000, newConsumers: 6, recommendations: 15, convertedRecommendations: 9 },
+      { week: "Actual", sales: 109000, salesTarget: 95000, newConsumers: 5, recommendations: 12, convertedRecommendations: 8 },
+    ],
+  },
+  {
+    baId: "u-andrea",
+    monthlyTarget: 360000,
+    newConsumerTarget: 16,
+    activeDays: 15,
+    workDays: 21,
+    followUpsCompleted: 24,
+    followUpsPending: 5,
+    birthdaysContacted: 4,
+    birthdaysTotal: 5,
+    replenishmentsActivated: 9,
+    appointmentsScheduled: 21,
+    appointmentsCompleted: 17,
+    appointmentsCancelled: 2,
+    adoptionScore: 76,
+    rank: 4,
+    rankTotal: 5,
+    categorySales: { Skincare: 68000, Makeup: 118000, Fragancia: 94000 },
+    history: [
+      { week: "S-7", sales: 63000, salesTarget: 80000, newConsumers: 2, recommendations: 8, convertedRecommendations: 3 },
+      { week: "S-6", sales: 70000, salesTarget: 80000, newConsumers: 3, recommendations: 9, convertedRecommendations: 4 },
+      { week: "S-5", sales: 69000, salesTarget: 83000, newConsumers: 3, recommendations: 10, convertedRecommendations: 5 },
+      { week: "S-4", sales: 76000, salesTarget: 83000, newConsumers: 4, recommendations: 11, convertedRecommendations: 6 },
+      { week: "S-3", sales: 82000, salesTarget: 88000, newConsumers: 4, recommendations: 11, convertedRecommendations: 6 },
+      { week: "S-2", sales: 74000, salesTarget: 88000, newConsumers: 3, recommendations: 10, convertedRecommendations: 5 },
+      { week: "S-1", sales: 88000, salesTarget: 92000, newConsumers: 4, recommendations: 12, convertedRecommendations: 7 },
+      { week: "Actual", sales: 80000, salesTarget: 92000, newConsumers: 4, recommendations: 13, convertedRecommendations: 7 },
+    ],
   },
 ];
