@@ -10,8 +10,8 @@ interface Props {
 export function BrandMark({ brand, variant = "default", className }: Props) {
   if (brand === "ysl") {
     return (
-      <div className={cn("flex flex-col items-start leading-none font-display", className)}>
-        <span className="text-[1.6em] tracking-[0.18em] font-semibold">YSL</span>
+      <div className={cn("flex flex-col items-start leading-none font-sans", className)}>
+        <span className="text-[1.6em] tracking-[0.12em] font-bold text-primary">YSL</span>
         <span className="text-[0.55em] tracking-[0.42em] uppercase mt-1 opacity-80">
           Beauty
         </span>
@@ -20,7 +20,7 @@ export function BrandMark({ brand, variant = "default", className }: Props) {
   }
   return (
     <div className={cn("flex flex-col items-start leading-tight", className)}>
-      <span className="font-display italic text-[1.4em] tracking-tight">
+      <span className="font-display text-[1.4em] tracking-[0.18em] font-bold uppercase text-primary">
         Lancôme
       </span>
       {variant !== "mono" && (

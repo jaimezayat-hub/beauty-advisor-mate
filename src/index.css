@@ -50,7 +50,7 @@
     --input: 38 22% 86%;
     --ring: 343 56% 35%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 343 40% 14%;
     --sidebar-foreground: 38 35% 92%;
@@ -64,8 +64,8 @@
     --gradient-brand: linear-gradient(135deg, hsl(343 56% 35%) 0%, hsl(343 45% 25%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(343 56% 30%) 0%, hsl(354 40% 55%) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(38 35% 98%) 0%, hsl(354 30% 92%) 100%);
-    --shadow-luxe: 0 20px 60px -20px hsl(343 56% 25% / 0.35);
-    --shadow-card: 0 4px 24px -6px hsl(343 30% 30% / 0.12);
+    --shadow-luxe: 0 2px 8px hsl(0 0% 0% / 0.06);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.06);
     --font-display: "Playfair Display", Georgia, serif;
     --font-body: "DM Sans", system-ui, sans-serif;
   }
@@ -122,8 +122,8 @@
     --gradient-brand: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 14%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(354 100% 22%) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 4%) 100%);
-    --shadow-luxe: 0 24px 70px -20px hsl(46 60% 30% / 0.45);
-    --shadow-card: 0 4px 28px -6px hsl(0 0% 0% / 0.55);
+    --shadow-luxe: 0 2px 8px hsl(0 0% 0% / 0.2);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.22);
     --font-display: "Playfair Display", Georgia, serif;
     --font-body: "DM Sans", system-ui, sans-serif;
   }
@@ -141,7 +141,7 @@
   }
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 }
 
@@ -158,9 +158,32 @@
   .shadow-luxe { box-shadow: var(--shadow-luxe); }
   .shadow-card { box-shadow: var(--shadow-card); }
 
+  .kpi-label {
+    @apply text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold;
+  }
+
+  .kpi-number {
+    @apply font-display text-5xl font-light leading-none tabular-nums;
+  }
+
+  table tbody tr {
+    @apply border-b border-border;
+  }
+
+  table tbody tr:last-child {
+    border-bottom-width: 0;
+  }
+
   .hairline {
     background-image: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
     height: 1px;
+  }
+
+  .bg-gradient-brand,
+  .gradient-brand,
+  .bg-gradient-hero,
+  .gradient-hero {
+    background: hsl(var(--primary));
   }
 }
 

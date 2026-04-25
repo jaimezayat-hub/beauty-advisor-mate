@@ -15,7 +15,7 @@ export function ConsumerAvatar({
   return (
     <div
       className={cn(
-        "relative shrink-0 rounded-full font-display flex items-center justify-center text-primary-foreground bg-gradient-brand shadow-card",
+        "relative shrink-0 rounded-full font-sans font-bold flex items-center justify-center text-primary-foreground bg-primary shadow-card data-[brand=ysl]:text-primary",
         className,
       )}
       style={{ width: size, height: size, fontSize: size * 0.38 }}

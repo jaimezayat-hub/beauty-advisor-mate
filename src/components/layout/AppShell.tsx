@@ -111,7 +111,7 @@ export function AppShell() {
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all",
+                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors duration-150 ease-in-out",
                   isActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-sm"
                     : "hover:bg-sidebar-accent text-sidebar-foreground/85",
@@ -141,12 +141,12 @@ export function AppShell() {
               {store?.name}
             </p>
 
-            <div className="flex items-center gap-1 mt-3">
+            <div className="flex items-center gap-1 mt-3 rounded-md bg-sidebar-accent/40 p-1">
               <button
                 type="button"
                 onClick={() => setActiveBrand("lancome")}
                 className={cn(
-                  "flex-1 text-[10px] uppercase tracking-widest py-1.5 rounded transition",
+                   "flex-1 text-[10px] uppercase tracking-[0.12em] py-1.5 rounded-md transition-colors duration-150",
                   activeBrand === "lancome"
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "opacity-60 hover:opacity-100",
@@ -158,7 +158,7 @@ export function AppShell() {
                 type="button"
                 onClick={() => setActiveBrand("ysl")}
                 className={cn(
-                  "flex-1 text-[10px] uppercase tracking-widest py-1.5 rounded transition",
+                   "flex-1 text-[10px] uppercase tracking-[0.12em] py-1.5 rounded-md transition-colors duration-150",
                   activeBrand === "ysl"
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "opacity-60 hover:opacity-100",
