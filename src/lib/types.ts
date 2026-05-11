@@ -96,6 +96,11 @@ export interface Appointment {
   type: AppointmentType;
   notes?: string;
   status: AppointmentStatus;
+  /** RF-30 — registro de confirmación enviada al consumidor */
+  confirmationSentAt?: string;
+  confirmationChannel?: "WhatsApp" | "SMS" | "Email";
+  /** Resultado para métricas (RF-31, RF-39) */
+  outcome?: { sold: boolean; total?: number; notes?: string };
 }
 
 export interface FollowUp {
@@ -107,6 +112,9 @@ export interface FollowUp {
   notes?: string;
   nextAction?: string;
   nextDate?: string;
+  /** RF-32 — resultado de la interacción post-visita */
+  outcome?: "Convirtió" | "Necesita revisita" | "Sin interés" | "Pendiente respuesta";
+  status?: "pendiente" | "completado" | "omitido";
 }
 
 export interface Sample {
@@ -181,6 +189,11 @@ export interface Product {
   benefits: string[];
   imageHue: number; // for placeholder gradient
   inStock: boolean;
+  /** RF-59 — soporte para BA: ficha técnica, tutoriales y argumentario */
+  ingredients?: string[];
+  howToUse?: string;
+  saleArguments?: string[];
+  tutorialUrl?: string;
 }
 
 export interface WeeklyKpi {
