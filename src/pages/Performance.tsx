@@ -220,6 +220,39 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   return <div className="rounded-xl border border-border bg-card p-4"><p className="kpi-label">{label}</p><p className="font-display text-2xl font-light mt-1">{value}</p></div>;
 }
 
+function ApptHealthCard({ stats }: { stats: { total: number; rescheduled: number; cancelled: number; noShow: number } }) {
+  const completed = Math.max(stats.total - stats.cancelled - stats.noShow - stats.rescheduled, 0);
+  const data = [
+    { label: "Completadas", value: completed, color: "hsl(var(--success))" },
+    { label: "Reagendadas", value: stats.rescheduled, color: "hsl(var(--gold))" },
+    { label: "Canceladas", value: stats.cancelled, color: "hsl(var(--accent))" },
+    { label: "NoShow", value: stats.noShow, color: "hsl(var(--destructive))" },
+  ];
+  const max = Math.max(1, ...data.map((d) => d.value));
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="kpi-label">Salud de citas (RF-31)</p>
+          <h3 className="font-display text-xl mt-1">{stats.total} citas en alcance</h3>
+        </div>
+        <CalendarDays className="size-5 text-primary" />
+      </div>
+      <div className="space-y-2">
+        {data.map((d) => (
+          <div key={d.label} className="grid grid-cols-[110px_1fr_auto] items-center gap-3 text-sm">
+            <span className="text-muted-foreground">{d.label}</span>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full" style={{ width: `${(d.value / max) * 100}%`, background: d.color }} />
+            </div>
+            <span className="font-display tabular-nums w-8 text-right">{d.value}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 type KpiCardProps = { focus: KpiFocus; icon: React.ReactNode; label: string; value: string; hint: string; progress?: number; donut?: number[]; delta?: string; active?: boolean; onClick?: () => void };
 function KpiCard({ icon, label, value, hint, progress, donut, delta, active, onClick }: KpiCardProps) {
   return (
