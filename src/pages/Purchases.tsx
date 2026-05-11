@@ -16,12 +16,13 @@ import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import { Link, useSearchParams } from "react-router-dom";
 import { SEED_PRODUCTS } from "@/data/seed";
+import { getScope, inScope } from "@/lib/permissions";
 
 type Line = { product: Product; qty: number };
 
 export default function Purchases() {
   const user = useCurrentUser()!;
-  const { consumers, purchases, users, addPurchase } = useApp();
+  const { consumers, purchases, users, stores, addPurchase } = useApp();
   const PRODUCTS = SEED_PRODUCTS;
 
   const [params] = useSearchParams();
@@ -91,14 +92,17 @@ export default function Purchases() {
 
   // History filtering
   const history = useMemo(() => {
+    const scope = getScope(user);
+    const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
+    const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
     return purchases
-      .filter((p) => (user.role === "ba" ? p.baId === user.id : true))
+      .filter((p) => inScope(scope, p, { baToStoreId, storeIdToRegion }))
       .filter((p) => (historyFilter.brand === "all" ? true : p.brand === historyFilter.brand))
       .filter((p) => (historyFilter.baId === "all" ? true : p.baId === historyFilter.baId))
       .filter((p) => (historyFilter.from ? p.date >= historyFilter.from : true))
       .filter((p) => (historyFilter.to ? p.date <= historyFilter.to + "T23:59:59" : true))
       .sort((a, b) => b.date.localeCompare(a.date));
-  }, [purchases, historyFilter, user]);
+  }, [purchases, historyFilter, user, users, stores]);
 
   const exportHistory = () => {
     const rows = history.flatMap((p) => {
