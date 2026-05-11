@@ -122,13 +122,31 @@ export default function Login() {
           <div className="rounded-xl border border-border bg-muted/40 p-4 text-xs space-y-2">
             <p className="font-semibold flex items-center gap-1.5">
               <Sparkles className="size-3.5 text-primary" />
-              Cuentas demo
+              Cuentas demo (clic para autocompletar)
             </p>
             <ul className="space-y-1 text-muted-foreground">
-              <li><b className="text-foreground">sofia.ramirez@loreal.mx</b> · BA Lancôme</li>
-              <li><b className="text-foreground">andrea.vega@loreal.mx</b> · BA YSL</li>
-              <li><b className="text-foreground">roberto.salinas@palaciodehierro.mx</b> · Gerente</li>
+              {[
+                { e: "sofia.ramirez@loreal.mx", r: "BA Lancôme" },
+                { e: "andrea.vega@loreal.mx", r: "BA YSL" },
+                { e: "roberto.salinas@palaciodehierro.mx", r: "Gerente Palacio" },
+                { e: "carolina.ortiz@loreal.mx", r: "Supervisor de Zona" },
+                { e: "admin@loreal.mx", r: "Admin Central" },
+              ].map((acc) => (
+                <li key={acc.e}>
+                  <button
+                    type="button"
+                    onClick={() => setEmail(acc.e)}
+                    className="text-foreground hover:underline"
+                  >
+                    {acc.e}
+                  </button>
+                  <span className="text-muted-foreground"> · {acc.r}</span>
+                </li>
+              ))}
             </ul>
+            <p className="text-[10px] text-muted-foreground pt-1">
+              Contraseña demo: <b className="text-foreground">demo</b>
+            </p>
           </div>
         </form>
       </main>
