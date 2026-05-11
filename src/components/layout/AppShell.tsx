@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { GlobalSearch } from "./GlobalSearch";
-import type { Role } from "@/lib/types";
+import { ROLE_LABEL, canAccessRoute, isManagerRole } from "@/lib/permissions";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, end: true },
@@ -29,17 +29,9 @@ const NAV = [
   { to: "/agenda", label: "Agenda", icon: Calendar },
   { to: "/seguimiento", label: "Seguimiento", icon: MessageCircle },
   { to: "/desempeno", label: "Desempeño", icon: BarChart3, performance: true },
-  { to: "/reportes", label: "Reportes", icon: PieChart, managerOnly: true },
+  { to: "/reportes", label: "Reportes", icon: PieChart },
   { to: "/configuracion", label: "Configuración", icon: Cog },
 ];
-
-const ROLE_LABEL: Record<Role, string> = {
-  ba: "Beauty Advisor",
-  store_manager_palacio: "Gerente · Palacio",
-  store_manager_liverpool: "Gerente · Liverpool",
-  zone_supervisor: "Supervisor de Zona",
-  central_admin: "Administrador Central",
-};
 
 export function AppShell() {
   const user = useCurrentUser();
@@ -73,7 +65,7 @@ export function AppShell() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const isManager = user.role !== "ba";
+  const isManager = isManagerRole(user.role);
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
@@ -104,7 +96,7 @@ export function AppShell() {
         </div>
 
         <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-          {NAV.filter((n) => !n.managerOnly || isManager).map((item) => (
+          {NAV.filter((n) => canAccessRoute(user.role, n.to)).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
