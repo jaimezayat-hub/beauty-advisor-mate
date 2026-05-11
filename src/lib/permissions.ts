@@ -67,8 +67,6 @@ export const ROLE_LABEL: Record<Role, string> = {
 };
 
 export function canAccessRoute(role: Role, route: string): boolean {
-  // Admin: todo. BA: todo excepto reportes gerenciales.
-  if (role === "central_admin") return true;
   if (route === "/reportes") return role !== "ba"; // RF-52
   if (route === "/configuracion") return role === "central_admin"; // RF-54
   return true;
