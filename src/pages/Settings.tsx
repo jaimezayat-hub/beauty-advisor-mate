@@ -50,7 +50,7 @@ export default function Settings() {
         <dl className="space-y-2 text-sm">
           <Row label="Nombre" value={user.name} />
           <Row label="Correo" value={user.email} />
-          <Row label="Rol" value={user.role} />
+          <Row label="Rol" value={ROLE_LABEL[user.role]} />
           <Row label="Tienda" value={store?.name ?? "—"} />
           <Row label="Marca asignada" value={user.brand === "ysl" ? "YSL Beauty" : "Lancôme"} />
         </dl>
