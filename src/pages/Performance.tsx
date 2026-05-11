@@ -47,6 +47,7 @@ import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
+import { getScope } from "@/lib/permissions";
 
 const PERIODS = ["Esta semana", "Este mes", "Últimos 3 meses", "Personalizado"];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--gold))"];
@@ -56,12 +57,33 @@ type KpiFocus = "ventas" | "clienteling" | "adopcion";
 
 export default function Performance() {
   const user = useCurrentUser()!;
-  const { users, baKpis } = useApp();
+  const { users, baKpis, stores, appointments } = useApp();
   const [period, setPeriod] = useState("Este mes");
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
-  const profiles = baKpis.filter((k) => users.find((u) => u.id === k.baId)?.storeId === user.storeId);
+  const scope = getScope(user);
+  const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
+  const profiles = baKpis.filter((k) => {
+    const u = users.find((x) => x.id === k.baId);
+    if (!u) return false;
+    switch (scope.kind) {
+      case "self": return u.id === scope.userId;
+      case "store": return u.storeId === scope.storeId;
+      case "region": return storeIdToRegion[u.storeId] === scope.region;
+      case "all": return true;
+    }
+  });
   const current = baKpis.find((k) => k.baId === user.id) ?? profiles[0];
+
+  // RF-31 — métricas reales de reagendadas/canceladas a partir de citas
+  const baIds = new Set(profiles.map((p) => p.baId));
+  const visibleAppts = appointments.filter((a) => baIds.has(a.baId));
+  const apptStats = {
+    total: visibleAppts.length,
+    rescheduled: visibleAppts.filter((a) => a.status === "Reagendada").length,
+    cancelled: visibleAppts.filter((a) => a.status === "Cancelada").length,
+    noShow: visibleAppts.filter((a) => a.status === "NoShow").length,
+  };
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
@@ -80,14 +102,15 @@ export default function Performance() {
         </div>
       </div>
 
-      {isBa && current ? <BaPanel profile={current} user={user} period={period} /> : <TeamPanel profiles={profiles} users={users} />}
+      {isBa && current ? <BaPanel profile={current} user={user} period={period} apptStats={apptStats} /> : <TeamPanel profiles={profiles} users={users} />}
       {!isBa && <TeamPanel profiles={profiles} users={users} compact />}
       {isDirector && <SuccessMetrics profiles={profiles} />}
+      {!isBa && <ApptHealthCard stats={apptStats} />}
     </div>
   );
 }
 
-function BaPanel({ profile, user, period }: { profile: BaKpiProfile; user: User; period: string }) {
+function BaPanel({ profile, user, period, apptStats }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number } }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
   const monthSales = profile.history.slice(-4).reduce((s, w) => s + w.sales, 0);
   const previousSales = profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0);
@@ -111,6 +134,7 @@ function BaPanel({ profile, user, period }: { profile: BaKpiProfile; user: User;
     { focus: "adopcion", icon: <Smartphone />, label: "Días activa", value: `${profile.activeDays}/${profile.workDays}`, hint: "Días laborales del mes", progress: (profile.activeDays / profile.workDays) * 100 },
     { focus: "adopcion", icon: <Trophy />, label: "Adopción", value: `${profile.adoptionScore}/100`, hint: "Actividad ponderada", progress: profile.adoptionScore },
     { focus: "adopcion", icon: <CalendarDays />, label: "Citas", value: `${profile.appointmentsScheduled}/${profile.appointmentsCompleted}/${profile.appointmentsCancelled}`, hint: "Agendadas / completadas / canceladas" },
+    { focus: "adopcion", icon: <RefreshCw />, label: "Reagendadas / NoShow", value: `${apptStats.rescheduled} / ${apptStats.noShow}`, hint: "Citas reagendadas o sin asistencia (mes)" },
     { focus: "adopcion", icon: <Users />, label: "Ranking tienda", value: `#${profile.rank} de ${profile.rankTotal}`, hint: `Puesto #${profile.rank} de ${profile.rankTotal} BAs` },
   ];
 
@@ -194,6 +218,39 @@ function ExecutiveHero({ profile, user, monthSales, targetPct, period }: { profi
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return <div className="rounded-xl border border-border bg-card p-4"><p className="kpi-label">{label}</p><p className="font-display text-2xl font-light mt-1">{value}</p></div>;
+}
+
+function ApptHealthCard({ stats }: { stats: { total: number; rescheduled: number; cancelled: number; noShow: number } }) {
+  const completed = Math.max(stats.total - stats.cancelled - stats.noShow - stats.rescheduled, 0);
+  const data = [
+    { label: "Completadas", value: completed, color: "hsl(var(--success))" },
+    { label: "Reagendadas", value: stats.rescheduled, color: "hsl(var(--gold))" },
+    { label: "Canceladas", value: stats.cancelled, color: "hsl(var(--accent))" },
+    { label: "NoShow", value: stats.noShow, color: "hsl(var(--destructive))" },
+  ];
+  const max = Math.max(1, ...data.map((d) => d.value));
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="kpi-label">Salud de citas (RF-31)</p>
+          <h3 className="font-display text-xl mt-1">{stats.total} citas en alcance</h3>
+        </div>
+        <CalendarDays className="size-5 text-primary" />
+      </div>
+      <div className="space-y-2">
+        {data.map((d) => (
+          <div key={d.label} className="grid grid-cols-[110px_1fr_auto] items-center gap-3 text-sm">
+            <span className="text-muted-foreground">{d.label}</span>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full" style={{ width: `${(d.value / max) * 100}%`, background: d.color }} />
+            </div>
+            <span className="font-display tabular-nums w-8 text-right">{d.value}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
 }
 
 type KpiCardProps = { focus: KpiFocus; icon: React.ReactNode; label: string; value: string; hint: string; progress?: number; donut?: number[]; delta?: string; active?: boolean; onClick?: () => void };
