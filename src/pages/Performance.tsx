@@ -47,6 +47,7 @@ import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
+import { getScope } from "@/lib/permissions";
 
 const PERIODS = ["Esta semana", "Este mes", "Últimos 3 meses", "Personalizado"];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--gold))"];
@@ -56,12 +57,33 @@ type KpiFocus = "ventas" | "clienteling" | "adopcion";
 
 export default function Performance() {
   const user = useCurrentUser()!;
-  const { users, baKpis } = useApp();
+  const { users, baKpis, stores, appointments } = useApp();
   const [period, setPeriod] = useState("Este mes");
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
-  const profiles = baKpis.filter((k) => users.find((u) => u.id === k.baId)?.storeId === user.storeId);
+  const scope = getScope(user);
+  const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
+  const profiles = baKpis.filter((k) => {
+    const u = users.find((x) => x.id === k.baId);
+    if (!u) return false;
+    switch (scope.kind) {
+      case "self": return u.id === scope.userId;
+      case "store": return u.storeId === scope.storeId;
+      case "region": return storeIdToRegion[u.storeId] === scope.region;
+      case "all": return true;
+    }
+  });
   const current = baKpis.find((k) => k.baId === user.id) ?? profiles[0];
+
+  // RF-31 — métricas reales de reagendadas/canceladas a partir de citas
+  const baIds = new Set(profiles.map((p) => p.baId));
+  const visibleAppts = appointments.filter((a) => baIds.has(a.baId));
+  const apptStats = {
+    total: visibleAppts.length,
+    rescheduled: visibleAppts.filter((a) => a.status === "Reagendada").length,
+    cancelled: visibleAppts.filter((a) => a.status === "Cancelada").length,
+    noShow: visibleAppts.filter((a) => a.status === "NoShow").length,
+  };
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
@@ -80,14 +102,15 @@ export default function Performance() {
         </div>
       </div>
 
-      {isBa && current ? <BaPanel profile={current} user={user} period={period} /> : <TeamPanel profiles={profiles} users={users} />}
+      {isBa && current ? <BaPanel profile={current} user={user} period={period} apptStats={apptStats} /> : <TeamPanel profiles={profiles} users={users} />}
       {!isBa && <TeamPanel profiles={profiles} users={users} compact />}
       {isDirector && <SuccessMetrics profiles={profiles} />}
+      {!isBa && <ApptHealthCard stats={apptStats} />}
     </div>
   );
 }
 
-function BaPanel({ profile, user, period }: { profile: BaKpiProfile; user: User; period: string }) {
+function BaPanel({ profile, user, period, apptStats }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number } }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
   const monthSales = profile.history.slice(-4).reduce((s, w) => s + w.sales, 0);
   const previousSales = profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0);
@@ -111,6 +134,7 @@ function BaPanel({ profile, user, period }: { profile: BaKpiProfile; user: User;
     { focus: "adopcion", icon: <Smartphone />, label: "Días activa", value: `${profile.activeDays}/${profile.workDays}`, hint: "Días laborales del mes", progress: (profile.activeDays / profile.workDays) * 100 },
     { focus: "adopcion", icon: <Trophy />, label: "Adopción", value: `${profile.adoptionScore}/100`, hint: "Actividad ponderada", progress: profile.adoptionScore },
     { focus: "adopcion", icon: <CalendarDays />, label: "Citas", value: `${profile.appointmentsScheduled}/${profile.appointmentsCompleted}/${profile.appointmentsCancelled}`, hint: "Agendadas / completadas / canceladas" },
+    { focus: "adopcion", icon: <RefreshCw />, label: "Reagendadas / NoShow", value: `${apptStats.rescheduled} / ${apptStats.noShow}`, hint: "Citas reagendadas o sin asistencia (mes)" },
     { focus: "adopcion", icon: <Users />, label: "Ranking tienda", value: `#${profile.rank} de ${profile.rankTotal}`, hint: `Puesto #${profile.rank} de ${profile.rankTotal} BAs` },
   ];
 
