@@ -6,6 +6,7 @@ import { BrandMark } from "@/components/clienteling/BrandMark";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TEMPLATES } from "@/lib/templates";
+import { ROLE_LABEL } from "@/lib/permissions";
 
 export default function Settings() {
   const user = useCurrentUser()!;
