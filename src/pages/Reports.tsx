@@ -480,6 +480,99 @@ export default function Reports() {
         </div>
       )}
 
+      {tab === "retencion" && (
+        <div className="space-y-6 animate-fade-in">
+          <Card className="p-8 shadow-luxe gradient-brand text-primary-foreground">
+            <p className="text-[11px] uppercase tracking-[0.3em] opacity-80 flex items-center gap-1.5">
+              <HeartPulse className="size-3.5" /> Retención
+            </p>
+            <h2 className="font-display text-2xl mt-1">Salud de la cartera</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
+              {retention.map((r) => (
+                <Hero
+                  key={r.name}
+                  label={r.name}
+                  value={`${Math.round((r.value / retentionTotal) * 100)}%`}
+                />
+              ))}
+            </div>
+            <p className="text-[11px] opacity-70 mt-4">
+              Activas ≤ 60d · Tibias 61–120d · En riesgo 121–180d · Perdidas {">"}180d
+            </p>
+          </Card>
+
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card className="p-6 shadow-card">
+              <ChartHeader title="Distribución de la cartera" />
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={retention}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                    {retention.map((r, i) => (
+                      <Cell
+                        key={i}
+                        fill={
+                          r.name === "Activas"
+                            ? "hsl(var(--success))"
+                            : r.name === "Tibias"
+                            ? "hsl(var(--gold))"
+                            : r.name === "En riesgo"
+                            ? "hsl(var(--warning))"
+                            : "hsl(var(--destructive))"
+                        }
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="overflow-hidden shadow-card">
+              <div className="p-5 border-b border-border flex items-center gap-2">
+                <TrendingUp className="size-4 text-primary" />
+                <h3 className="font-display text-lg">Top candidatas a reactivación</h3>
+              </div>
+              {reactivationList.length === 0 ? (
+                <p className="p-8 text-sm text-center text-muted-foreground">
+                  Cartera al día — sin clientas en riesgo.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border max-h-[320px] overflow-y-auto">
+                  {reactivationList.map(({ c, days, bucket }) => (
+                    <li key={c.id} className="p-3 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <Link to={`/consumidoras/${c.id}`} className="text-sm font-medium hover:underline">
+                          {fullName(c.firstName, c.lastName)}
+                        </Link>
+                        <p className="text-[11px] text-muted-foreground">
+                          Última compra hace {days}d · {c.brand === "ysl" ? "YSL" : "Lancôme"}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          "text-[10px] px-2 py-0.5 rounded-full",
+                          bucket === "Tibias"
+                            ? "bg-gold/15 text-gold"
+                            : "bg-warning/15 text-warning",
+                        )}
+                      >
+                        {bucket}
+                      </span>
+                      <Button asChild size="sm" variant="ghost" className="text-xs h-7">
+                        <Link to="/seguimiento">Reactivar</Link>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+
       <TrendingUp className="hidden" />
     </div>
   );
