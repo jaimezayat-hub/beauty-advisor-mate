@@ -19,7 +19,7 @@ import { PageHeader } from "@/components/clienteling/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SegmentBadge } from "@/components/clienteling/SegmentBadge";
-import { Download, TrendingUp, Users } from "lucide-react";
+import { Download, HeartPulse, TrendingUp, Users } from "lucide-react";
 import { downloadCSV } from "@/lib/csv";
 import { formatDate, formatMoney, fullName } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export default function Reports() {
   const user = useCurrentUser()!;
   const { consumers, purchases, users, appointments, followUps, recommendations } = useApp();
   const [range, setRange] = useState<RangeKey>("mes");
-  const [tab, setTab] = useState<"dashboard" | "consumidoras" | "ba" | "adopcion">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "consumidoras" | "ba" | "adopcion" | "retencion">("dashboard");
 
   const start = rangeStart(range);
   const inRange = <T extends { date: string }>(items: T[]) =>
@@ -121,6 +121,34 @@ export default function Reports() {
   const baActiveWeek = new Set(inRange(purchases).map((p) => p.baId));
   const adoptionToday = bas.length ? Math.round((baActiveToday.size / bas.length) * 100) : 0;
   const adoptionWeek = bas.length ? Math.round((baActiveWeek.size / bas.length) * 100) : 0;
+
+  // RF-47 — Retención: clientas activas vs en riesgo
+  const now = Date.now();
+  const dayMs = 86400000;
+  const lastTx = (cid: string) => {
+    const ps = purchases.filter((p) => p.consumerId === cid);
+    if (!ps.length) return null;
+    return Math.max(...ps.map((p) => new Date(p.date).getTime()));
+  };
+  const consumerStatus = consumers.map((c) => {
+    const lt = lastTx(c.id) ?? new Date(c.lastTransactionAt ?? c.createdAt).getTime();
+    const days = Math.floor((now - lt) / dayMs);
+    let bucket: "Activas" | "Tibias" | "En riesgo" | "Perdidas";
+    if (days <= 60) bucket = "Activas";
+    else if (days <= 120) bucket = "Tibias";
+    else if (days <= 180) bucket = "En riesgo";
+    else bucket = "Perdidas";
+    return { c, days, bucket };
+  });
+  const retention = (["Activas", "Tibias", "En riesgo", "Perdidas"] as const).map((b) => ({
+    name: b,
+    value: consumerStatus.filter((x) => x.bucket === b).length,
+  }));
+  const retentionTotal = consumerStatus.length || 1;
+  const reactivationList = consumerStatus
+    .filter((x) => x.bucket === "En riesgo" || x.bucket === "Tibias")
+    .sort((a, b) => b.days - a.days)
+    .slice(0, 12);
 
   // BA performance
   const baPerf = bas.map((b) => {
@@ -206,6 +234,7 @@ export default function Reports() {
         {([
           ["dashboard", "Dashboard"],
           ["adopcion", "Adopción"],
+          ["retencion", "Retención"],
           ["consumidoras", "Lista Consumidoras"],
           ["ba", "Desempeño BA"],
         ] as const).map(([k, l]) => (
