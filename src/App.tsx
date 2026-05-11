@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrandProvider } from "@/components/layout/BrandProvider";
 import { AppShell } from "@/components/layout/AppShell";
+import { RouteGuard } from "@/components/layout/RouteGuard";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Consumers from "./pages/Consumers";
@@ -30,6 +31,7 @@ const App = () => (
           <Sonner position="top-center" richColors closeButton />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route element={<RouteGuard />}>
             <Route element={<AppShell />}>
               <Route path="/" element={<Home />} />
               <Route path="/consumidoras" element={<Consumers />} />
@@ -42,6 +44,7 @@ const App = () => (
               <Route path="/reportes" element={<Reports />} />
               <Route path="/desempeno" element={<Performance />} />
               <Route path="/configuracion" element={<Settings />} />
+            </Route>
             </Route>
             <Route path="/index" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFound />} />

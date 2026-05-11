@@ -1,5 +1,6 @@
 import { Link, Navigate, useParams } from "react-router-dom";
-import { useApp } from "@/store/useApp";
+import { useApp, useCurrentUser } from "@/store/useApp";
+import { getScope, inScope } from "@/lib/permissions";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import type { PrivacyConsent } from "@/lib/types";
 
 export default function ConsumerProfile() {
   const { id } = useParams();
+  const user = useCurrentUser()!;
   const {
     consumers,
     purchases,
@@ -50,6 +52,13 @@ export default function ConsumerProfile() {
   } = useApp();
   const c = consumers.find((x) => x.id === id);
   if (!c) return <Navigate to="/consumidoras" replace />;
+  // RF-50/51 — un BA solo accede a sus consumidoras; gerentes a su tienda; supervisor a su región
+  const scope = getScope(user);
+  const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
+  const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
+  if (!inScope(scope, c, { baToStoreId, storeIdToRegion })) {
+    return <Navigate to="/consumidoras" replace />;
+  }
 
   const myPurchases = purchases.filter((p) => p.consumerId === c.id);
   const myAppts = appointments.filter((a) => a.consumerId === c.id);
