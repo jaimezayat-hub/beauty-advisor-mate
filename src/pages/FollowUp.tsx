@@ -226,6 +226,22 @@ export default function FollowUpPage() {
                           {f.nextAction}{f.nextDate && ` · ${formatDate(f.nextDate)}`}
                         </p>
                       )}
+                      {f.outcome && (
+                        <span
+                          className={cn(
+                            "inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full",
+                            f.outcome === "Convirtió"
+                              ? "bg-success/15 text-success"
+                              : f.outcome === "Sin interés"
+                              ? "bg-destructive/10 text-destructive"
+                              : f.outcome === "Necesita revisita"
+                              ? "bg-warning/15 text-warning"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {f.outcome}
+                        </span>
+                      )}
                     </div>
                     <div className="text-right text-xs text-muted-foreground shrink-0">
                       <p>{formatDate(f.date)}</p>
