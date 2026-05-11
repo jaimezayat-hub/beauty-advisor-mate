@@ -32,14 +32,18 @@ import {
 import { TEMPLATES, type TemplateDef, renderTemplate } from "@/lib/templates";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getScope, inScope } from "@/lib/permissions";
 
 export default function FollowUpPage() {
   const user = useCurrentUser()!;
   const store = useCurrentStore();
-  const { consumers, followUps, users, addFollowUp, addMessage } = useApp();
+  const { consumers, followUps, users, stores, addFollowUp, addMessage } = useApp();
+  const scope = getScope(user);
+  const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
+  const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
 
   const myConsumers = consumers.filter(
-    (c) => c.brand === user.brand && (user.role !== "ba" || c.assignedBaId === user.id),
+    (c) => c.brand === user.brand && inScope(scope, c, { baToStoreId, storeIdToRegion }),
   );
 
   const birthdays = myConsumers
@@ -66,10 +70,10 @@ export default function FollowUpPage() {
   const recentLog = useMemo(
     () =>
       followUps
-        .filter((f) => (user.role === "ba" ? f.baId === user.id : true))
+        .filter((f) => inScope(scope, f, { baToStoreId, storeIdToRegion }))
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 12),
-    [followUps, user],
+    [followUps, scope, baToStoreId, storeIdToRegion],
   );
 
   return (
