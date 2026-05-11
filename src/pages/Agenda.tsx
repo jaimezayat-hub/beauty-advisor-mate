@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConsumerPicker } from "@/components/clienteling/ConsumerPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Download, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Plus, MessageCircle } from "lucide-react";
 import type { Appointment, AppointmentStatus, AppointmentType, Consumer } from "@/lib/types";
 import { formatDate, fullName } from "@/lib/format";
 import { toast } from "sonner";
@@ -38,7 +38,8 @@ const TYPE_COLORS: Record<AppointmentType, string> = {
 
 export default function Agenda() {
   const user = useCurrentUser()!;
-  const { appointments, consumers, users, addAppointment } = useApp();
+  const { appointments, consumers, users, addAppointment, addMessage } = useApp();
+  const [confirmedIds, setConfirmedIds] = useState<Set<string>>(new Set());
 
   const [view, setView] = useState<"semana" | "mes">("semana");
   const [scope, setScope] = useState<"mias" | "tienda">(user.role === "ba" ? "mias" : "tienda");
@@ -271,6 +272,7 @@ export default function Agenda() {
                   <th className="text-left px-4 py-3 font-medium">BA</th>
                   <th className="text-left px-4 py-3 font-medium">Estado</th>
                   <th className="text-left px-4 py-3 font-medium">Notas</th>
+                  <th className="text-right px-4 py-3 font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -280,6 +282,31 @@ export default function Agenda() {
                   .map((a) => {
                     const c = consumers.find((x) => x.id === a.consumerId);
                     const ba = users.find((u) => u.id === a.baId);
+                    const sent = confirmedIds.has(a.id) || Boolean(a.confirmationSentAt);
+                    const confirm = async () => {
+                      if (!c) return;
+                      const dt = new Date(a.date);
+                      const fecha = dt.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+                      const hora = dt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+                      const brandName = c.brand === "ysl" ? "YSL Beauty" : "Lancôme";
+                      const text = `Hola ${c.firstName}, te confirmamos tu cita de ${a.type} el ${fecha} a las ${hora} en ${brandName}. ¿Sigues confirmada? — ${ba?.name.split(" ")[0] ?? ""}`;
+                      try {
+                        await navigator.clipboard.writeText(text);
+                      } catch {/* ignore */}
+                      addMessage({
+                        id: `m-${Date.now()}`,
+                        consumerId: c.id,
+                        baId: ba?.id ?? user.id,
+                        date: new Date().toISOString(),
+                        templateType: `Confirmación cita · ${a.type}`,
+                        content: text,
+                        channel: "WhatsApp",
+                      });
+                      setConfirmedIds((s) => new Set(s).add(a.id));
+                      toast.success("Confirmación copiada y registrada", {
+                        description: "Pega en WhatsApp para enviar.",
+                      });
+                    };
                     return (
                       <tr key={a.id} className="hover:bg-muted/30">
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -305,6 +332,19 @@ export default function Agenda() {
                           <span className="text-xs">{a.status}</span>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground truncate max-w-[200px]">{a.notes ?? "—"}</td>
+                        <td className="px-4 py-3 text-right">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={sent ? "ghost" : "outline"}
+                            disabled={!c || sent}
+                            onClick={confirm}
+                            className="text-xs h-8"
+                          >
+                            <MessageCircle className="size-3.5 mr-1" />
+                            {sent ? "Confirmada" : "Confirmar WhatsApp"}
+                          </Button>
+                        </td>
                       </tr>
                     );
                   })}

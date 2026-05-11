@@ -226,6 +226,22 @@ export default function FollowUpPage() {
                           {f.nextAction}{f.nextDate && ` · ${formatDate(f.nextDate)}`}
                         </p>
                       )}
+                      {f.outcome && (
+                        <span
+                          className={cn(
+                            "inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full",
+                            f.outcome === "Convirtió"
+                              ? "bg-success/15 text-success"
+                              : f.outcome === "Sin interés"
+                              ? "bg-destructive/10 text-destructive"
+                              : f.outcome === "Necesita revisita"
+                              ? "bg-warning/15 text-warning"
+                              : "bg-muted text-muted-foreground",
+                          )}
+                        >
+                          {f.outcome}
+                        </span>
+                      )}
                     </div>
                     <div className="text-right text-xs text-muted-foreground shrink-0">
                       <p>{formatDate(f.date)}</p>
@@ -334,6 +350,8 @@ function NewFollowUpDialog({
   const [notes, setNotes] = useState("");
   const [nextAction, setNextAction] = useState("");
   const [nextDate, setNextDate] = useState("");
+  const [outcome, setOutcome] = useState<NonNullable<FollowUp["outcome"]>>("Pendiente respuesta");
+  const [status, setStatus] = useState<NonNullable<FollowUp["status"]>>("completado");
 
   const submit = () => {
     if (!consumer) return toast.error("Selecciona una consumidora");
@@ -346,11 +364,15 @@ function NewFollowUpDialog({
       notes: notes || undefined,
       nextAction: nextAction || undefined,
       nextDate: nextDate ? new Date(nextDate).toISOString() : undefined,
+      outcome,
+      status,
     });
     setConsumer(null);
     setNotes("");
     setNextAction("");
     setNextDate("");
+    setOutcome("Pendiente respuesta");
+    setStatus("completado");
     onOpenChange(false);
   };
 
@@ -379,6 +401,39 @@ function NewFollowUpDialog({
                   )}
                 >
                   {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label className="mb-2 block">Resultado de la interacción</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {(["Convirtió", "Necesita revisita", "Sin interés", "Pendiente respuesta"] as const).map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => setOutcome(o)}
+                  className={cn(
+                    "text-xs px-2.5 py-1 rounded-full border",
+                    outcome === o ? "bg-primary text-primary-foreground border-primary" : "border-border",
+                  )}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 mt-2">
+              {(["completado", "pendiente", "omitido"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatus(s)}
+                  className={cn(
+                    "text-[11px] uppercase tracking-widest px-2 py-1 rounded-md border",
+                    status === s ? "bg-foreground text-background border-foreground" : "border-border text-muted-foreground",
+                  )}
+                >
+                  {s}
                 </button>
               ))}
             </div>

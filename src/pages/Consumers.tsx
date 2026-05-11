@@ -11,19 +11,29 @@ import { formatDate, formatPhoneMx, fullName } from "@/lib/format";
 import { Plus, Search } from "lucide-react";
 import type { Segment } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { getScope, inScope } from "@/lib/permissions";
 
 const FILTERS: ("Todas" | Segment)[] = ["Todas", "VIP", "Recurrente", "Nueva", "EnRiesgo"];
 
 export default function Consumers() {
   const user = useCurrentUser()!;
-  const { consumers, users } = useApp();
+  const { consumers, users, stores } = useApp();
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState<(typeof FILTERS)[number]>("Todas");
   const [scope, setScope] = useState<"mias" | "todas">(user.role === "ba" ? "mias" : "todas");
 
   const list = useMemo(() => {
-    let l = consumers.filter((c) => c.brand === user.brand);
-    if (scope === "mias") l = l.filter((c) => c.assignedBaId === user.id);
+    const userScope = getScope(user);
+    const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
+    const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
+    // RF-51..54 — alcance por rol; BA sólo ve su cartera, gerentes su tienda, supervisor su región.
+    let l = consumers.filter((c) =>
+      inScope(userScope, c, { baToStoreId, storeIdToRegion }),
+    );
+    if (user.role === "ba") l = l.filter((c) => c.brand === user.brand);
+    if (user.role !== "ba" && scope === "mias") {
+      l = l.filter((c) => c.assignedBaId === user.id);
+    }
     if (seg !== "Todas") l = l.filter((c) => c.segment === seg);
     if (q.trim()) {
       const t = q.toLowerCase();
@@ -37,7 +47,7 @@ export default function Consumers() {
     return l.sort((a, b) =>
       (b.lastContactAt ?? "").localeCompare(a.lastContactAt ?? ""),
     );
-  }, [consumers, q, seg, scope, user]);
+  }, [consumers, users, stores, q, seg, scope, user]);
 
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8">
