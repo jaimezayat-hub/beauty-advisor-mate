@@ -9,6 +9,8 @@ import type { Brand } from "@/lib/types";
 import { toast } from "sonner";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,6 +19,11 @@ export default function Login() {
   const [brand, setBrand] = useState<Brand>("lancome");
   const [email, setEmail] = useState("sofia.ramirez@loreal.mx");
   const [password, setPassword] = useState("demo");
+  const [mode, setMode] = useState<"demo" | "real">("demo");
+  const [realEmail, setRealEmail] = useState("");
+  const [realPassword, setRealPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
     setActiveBrand(brand);
@@ -41,6 +48,39 @@ export default function Login() {
     login(u.id);
     toast.success(`Bienvenida, ${u.name.split(" ")[0]}`);
     navigate("/");
+  };
+
+  const handleRealLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!realEmail || !realPassword) return toast.error("Email y contraseña requeridos");
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: realEmail.trim(),
+      password: realPassword,
+    });
+    setAuthBusy(false);
+    if (error) return toast.error("No se pudo iniciar sesión", { description: error.message });
+    toast.success("Sesión iniciada");
+    navigate("/");
+  };
+
+  const handleRealSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!realEmail || !realPassword) return toast.error("Email y contraseña requeridos");
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signUp({
+      email: realEmail.trim(),
+      password: realPassword,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { display_name: signupName || realEmail.split("@")[0], brand },
+      },
+    });
+    setAuthBusy(false);
+    if (error) return toast.error("No se pudo crear la cuenta", { description: error.message });
+    toast.success("Cuenta creada", {
+      description: "Revisa tu correo para confirmarla, luego inicia sesión.",
+    });
   };
 
   if (step === "brand") {
@@ -71,7 +111,7 @@ export default function Login() {
       </aside>
 
       <main className="flex-1 flex items-center justify-center p-6 lg:p-16">
-        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-8 animate-slide-up">
+        <div className="w-full max-w-md space-y-6 animate-slide-up">
           <button
             type="button"
             onClick={() => setStep("brand")}
@@ -86,69 +126,85 @@ export default function Login() {
             </p>
             <h2 className="font-display text-4xl">Bienvenida de nuevo</h2>
             <p className="text-muted-foreground mt-2">
-              Ingresa con tu correo corporativo {brand === "ysl" ? "YSL" : "Lancôme"}.
+              Demo o cuenta real {brand === "ysl" ? "YSL" : "Lancôme"}.
             </p>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Correo electrónico</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 mt-2"
-                placeholder="nombre@loreal.mx"
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-12 mt-2"
-              />
-            </div>
-          </div>
+          <Tabs value={mode} onValueChange={(v) => setMode(v as "demo" | "real")}>
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="demo">Demo</TabsTrigger>
+              <TabsTrigger value="real">Cuenta real</TabsTrigger>
+            </TabsList>
 
-          <Button type="submit" size="lg" className="w-full h-12 text-base">
-            Iniciar sesión
-            <ChevronRight className="ml-1 size-4" />
-          </Button>
+            <TabsContent value="demo" className="space-y-5 mt-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="email">Correo demo</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 mt-2" />
+                </div>
+                <div>
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 mt-2" />
+                </div>
+                <Button type="submit" size="lg" className="w-full h-12">
+                  Entrar al demo <ChevronRight className="ml-1 size-4" />
+                </Button>
+              </form>
+              <div className="rounded-xl border border-border bg-muted/40 p-4 text-xs space-y-2">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <Sparkles className="size-3.5 text-primary" /> Cuentas demo (clic para autocompletar)
+                </p>
+                <ul className="space-y-1 text-muted-foreground">
+                  {[
+                    { e: "sofia.ramirez@loreal.mx", r: "BA Lancôme" },
+                    { e: "andrea.vega@loreal.mx", r: "BA YSL" },
+                    { e: "roberto.salinas@palaciodehierro.mx", r: "Gerente Palacio" },
+                    { e: "carolina.ortiz@loreal.mx", r: "Supervisor de Zona" },
+                    { e: "admin@loreal.mx", r: "Admin Central" },
+                  ].map((acc) => (
+                    <li key={acc.e}>
+                      <button type="button" onClick={() => setEmail(acc.e)} className="text-foreground hover:underline">
+                        {acc.e}
+                      </button>
+                      <span className="text-muted-foreground"> · {acc.r}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[10px] text-muted-foreground pt-1">
+                  Contraseña demo: <b className="text-foreground">demo</b>
+                </p>
+              </div>
+            </TabsContent>
 
-          <div className="rounded-xl border border-border bg-muted/40 p-4 text-xs space-y-2">
-            <p className="font-semibold flex items-center gap-1.5">
-              <Sparkles className="size-3.5 text-primary" />
-              Cuentas demo (clic para autocompletar)
-            </p>
-            <ul className="space-y-1 text-muted-foreground">
-              {[
-                { e: "sofia.ramirez@loreal.mx", r: "BA Lancôme" },
-                { e: "andrea.vega@loreal.mx", r: "BA YSL" },
-                { e: "roberto.salinas@palaciodehierro.mx", r: "Gerente Palacio" },
-                { e: "carolina.ortiz@loreal.mx", r: "Supervisor de Zona" },
-                { e: "admin@loreal.mx", r: "Admin Central" },
-              ].map((acc) => (
-                <li key={acc.e}>
-                  <button
-                    type="button"
-                    onClick={() => setEmail(acc.e)}
-                    className="text-foreground hover:underline"
-                  >
-                    {acc.e}
-                  </button>
-                  <span className="text-muted-foreground"> · {acc.r}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="text-[10px] text-muted-foreground pt-1">
-              Contraseña demo: <b className="text-foreground">demo</b>
-            </p>
-          </div>
-        </form>
+            <TabsContent value="real" className="space-y-5 mt-6">
+              <form onSubmit={handleRealLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="rname">Nombre (solo para registro)</Label>
+                  <Input id="rname" value={signupName} onChange={(e) => setSignupName(e.target.value)} className="h-12 mt-2" placeholder="María López" />
+                </div>
+                <div>
+                  <Label htmlFor="remail">Correo electrónico</Label>
+                  <Input id="remail" type="email" value={realEmail} onChange={(e) => setRealEmail(e.target.value)} className="h-12 mt-2" placeholder="nombre@loreal.mx" autoComplete="email" />
+                </div>
+                <div>
+                  <Label htmlFor="rpass">Contraseña</Label>
+                  <Input id="rpass" type="password" value={realPassword} onChange={(e) => setRealPassword(e.target.value)} className="h-12 mt-2" autoComplete="current-password" minLength={6} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button type="submit" size="lg" className="h-12" disabled={authBusy}>
+                    Iniciar sesión
+                  </Button>
+                  <Button type="button" variant="outline" size="lg" className="h-12" onClick={handleRealSignup} disabled={authBusy}>
+                    Crear cuenta
+                  </Button>
+                </div>
+              </form>
+              <p className="text-xs text-muted-foreground">
+                Cuentas nuevas inician con rol <b>Beauty Advisor</b>. Un Administrador Central puede asignar otros roles desde Configuración.
+              </p>
+            </TabsContent>
+          </Tabs>
+        </div>
       </main>
     </div>
   );
