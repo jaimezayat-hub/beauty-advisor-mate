@@ -17,7 +17,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { fullName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
-import { SEED_PRODUCTS } from "@/data/seed";
 
 const REASONS = [
   "Nueva compra",
