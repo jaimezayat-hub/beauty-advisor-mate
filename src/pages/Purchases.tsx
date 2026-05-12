@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Link, useSearchParams } from "react-router-dom";
 import { SEED_PRODUCTS } from "@/data/seed";
 import { getScope, inScope } from "@/lib/permissions";
+import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
 
 type Line = { product: Product; qty: number };
 
