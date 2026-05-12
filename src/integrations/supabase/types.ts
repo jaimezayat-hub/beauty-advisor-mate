@@ -91,6 +91,7 @@ export type Database = {
         | "store_manager_liverpool"
         | "zone_supervisor"
         | "central_admin"
+        | "store_manager"
       brand: "lancome" | "ysl"
     }
     CompositeTypes: {
@@ -225,6 +226,7 @@ export const Constants = {
         "store_manager_liverpool",
         "zone_supervisor",
         "central_admin",
+        "store_manager",
       ],
       brand: ["lancome", "ysl"],
     },
