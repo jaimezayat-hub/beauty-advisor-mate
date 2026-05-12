@@ -1128,7 +1128,7 @@ export type Database = {
         Row: {
           active: boolean
           address: string | null
-          brand: Database["public"]["Enums"]["brand"]
+          brand: Database["public"]["Enums"]["brand"] | null
           code: string
           created_at: string
           name: string
@@ -1138,7 +1138,7 @@ export type Database = {
         Insert: {
           active?: boolean
           address?: string | null
-          brand: Database["public"]["Enums"]["brand"]
+          brand?: Database["public"]["Enums"]["brand"] | null
           code: string
           created_at?: string
           name: string
@@ -1148,7 +1148,7 @@ export type Database = {
         Update: {
           active?: boolean
           address?: string | null
-          brand?: Database["public"]["Enums"]["brand"]
+          brand?: Database["public"]["Enums"]["brand"] | null
           code?: string
           created_at?: string
           name?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.stores ALTER COLUMN brand DROP NOT NULL;
