@@ -126,6 +126,51 @@ export type Database = {
           },
         ]
       }
+      arco_requests: {
+        Row: {
+          consumer_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          request_type: Database["public"]["Enums"]["arco_type"]
+          requested_at: string
+          requested_by_ba: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["arco_status"]
+          updated_at: string
+        }
+        Insert: {
+          consumer_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_type: Database["public"]["Enums"]["arco_type"]
+          requested_at?: string
+          requested_by_ba?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["arco_status"]
+          updated_at?: string
+        }
+        Update: {
+          consumer_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_type?: Database["public"]["Enums"]["arco_type"]
+          requested_at?: string
+          requested_by_ba?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["arco_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -532,6 +577,47 @@ export type Database = {
         }
         Relationships: []
       }
+      notice_acceptances: {
+        Row: {
+          accepted_at: string
+          captured_by_ba: string | null
+          consumer_id: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          notice_id: string
+          signature_ref: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          captured_by_ba?: string | null
+          consumer_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          notice_id: string
+          signature_ref?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          captured_by_ba?: string | null
+          consumer_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          notice_id?: string
+          signature_ref?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_acceptances_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: false
+            referencedRelation: "privacy_notices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_prefs: {
         Row: {
           channel: Database["public"]["Enums"]["notification_channel"]
@@ -598,6 +684,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      privacy_notices: {
+        Row: {
+          body_text: string | null
+          body_url: string | null
+          brand: Database["public"]["Enums"]["brand"]
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          version: string
+        }
+        Insert: {
+          body_text?: string | null
+          body_url?: string | null
+          brand: Database["public"]["Enums"]["brand"]
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          id?: string
+          version: string
+        }
+        Update: {
+          body_text?: string | null
+          body_url?: string | null
+          brand?: Database["public"]["Enums"]["brand"]
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          version?: string
+        }
+        Relationships: []
       }
       product_recommendations: {
         Row: {
@@ -1109,6 +1228,87 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_reasons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      visits: {
+        Row: {
+          appointment_id: string | null
+          ba_id: string
+          brand: Database["public"]["Enums"]["brand"]
+          consumer_id: string
+          created_at: string
+          duration_min: number | null
+          id: string
+          notes: string | null
+          reason_id: string | null
+          store_id: string
+          visited_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          ba_id: string
+          brand: Database["public"]["Enums"]["brand"]
+          consumer_id: string
+          created_at?: string
+          duration_min?: number | null
+          id?: string
+          notes?: string | null
+          reason_id?: string | null
+          store_id: string
+          visited_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          ba_id?: string
+          brand?: Database["public"]["Enums"]["brand"]
+          consumer_id?: string
+          created_at?: string
+          duration_min?: number | null
+          id?: string
+          notes?: string | null
+          reason_id?: string | null
+          store_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visits_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_reason_id_fkey"
+            columns: ["reason_id"]
+            isOneToOne: false
+            referencedRelation: "visit_reasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_messages: {
         Row: {
           consumer_id: string
@@ -1235,6 +1435,8 @@ export type Database = {
         | "no_show"
         | "cancelled"
       appointment_type: "makeover" | "consulta" | "follow_up" | "evento"
+      arco_status: "recibida" | "en_proceso" | "completada" | "rechazada"
+      arco_type: "acceso" | "rectificacion" | "cancelacion" | "oposicion"
       brand: "lancome" | "ysl"
       consent_channel: "whatsapp" | "email" | "sms"
       followup_outcome:
@@ -1402,6 +1604,8 @@ export const Constants = {
         "cancelled",
       ],
       appointment_type: ["makeover", "consulta", "follow_up", "evento"],
+      arco_status: ["recibida", "en_proceso", "completada", "rechazada"],
+      arco_type: ["acceso", "rectificacion", "cancelacion", "oposicion"],
       brand: ["lancome", "ysl"],
       consent_channel: ["whatsapp", "email", "sms"],
       followup_outcome: [
