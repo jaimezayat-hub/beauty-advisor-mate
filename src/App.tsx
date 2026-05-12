@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrandProvider } from "@/components/layout/BrandProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { RouteGuard } from "@/components/layout/RouteGuard";
+import { AuthSync } from "@/components/layout/AuthSync";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Consumers from "./pages/Consumers";
@@ -27,6 +28,7 @@ const App = () => (
     <BrowserRouter>
       <BrandProvider>
         <TooltipProvider>
+          <AuthSync />
           <Toaster />
           <Sonner position="top-center" richColors closeButton />
           <Routes>

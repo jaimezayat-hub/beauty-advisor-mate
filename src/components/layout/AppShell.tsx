@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { GlobalSearch } from "./GlobalSearch";
 import { ROLE_LABEL, canAccessRoute, isManagerRole } from "@/lib/permissions";
+import { signOut } from "@/lib/auth";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, end: true },
@@ -162,7 +163,7 @@ export function AppShell() {
 
             <button
               type="button"
-              onClick={logout}
+              onClick={() => { signOut(); logout(); }}
               className="w-full mt-2 flex items-center justify-center gap-1.5 text-[11px] opacity-70 hover:opacity-100 py-1.5"
             >
               <LogOut className="size-3" /> Cerrar sesión

@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { Link, useSearchParams } from "react-router-dom";
 import { SEED_PRODUCTS } from "@/data/seed";
 import { getScope, inScope } from "@/lib/permissions";
+import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
 
 type Line = { product: Product; qty: number };
 
@@ -428,23 +429,18 @@ function ScanDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Escáner de SKU (simulado)</DialogTitle>
+          <DialogTitle className="font-display text-xl">Escáner de SKU (cámara)</DialogTitle>
         </DialogHeader>
-        <div className="aspect-video rounded-lg border-2 border-dashed border-primary/40 bg-gradient-soft flex items-center justify-center relative overflow-hidden">
-          <ScanLine className="size-10 text-primary/60 animate-pulse" />
-          <div className="absolute inset-x-6 top-1/2 h-px bg-primary/60 animate-pulse" />
-          <p className="absolute bottom-3 text-xs text-muted-foreground">
-            En el iPad físico se activaría la cámara.
-          </p>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Selecciona un producto para simular el escaneo:
-        </p>
-        <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto">
-          {products.slice(0, 8).map((p) => (
-            <ProductCard key={p.sku} product={p} compact onClick={() => onPick(p)} />
-          ))}
-        </div>
+        <BarcodeScanner
+          onClose={() => onOpenChange(false)}
+          onDetect={(code) => {
+            const found = products.find(
+              (p) => p.sku.toLowerCase() === code.toLowerCase(),
+            );
+            if (found) onPick(found);
+            else toast.error(`SKU no reconocido: ${code}`);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

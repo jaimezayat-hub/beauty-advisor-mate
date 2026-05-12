@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TEMPLATES } from "@/lib/templates";
 import { ROLE_LABEL } from "@/lib/permissions";
+import { signOut } from "@/lib/auth";
 
 export default function Settings() {
   const user = useCurrentUser()!;
@@ -80,7 +81,7 @@ export default function Settings() {
           <Button variant="outline" onClick={() => { resetSeed(); toast.success("Datos demo restaurados"); }}>
             Restablecer datos demo
           </Button>
-          <Button variant="ghost" onClick={() => { logout(); }}>
+          <Button variant="ghost" onClick={() => { signOut(); logout(); }}>
             Cerrar sesión
           </Button>
         </div>

@@ -52,6 +52,7 @@ interface AppState {
   addFollowUp: (f: FollowUp) => void;
   addMessage: (m: Message) => void;
   resetSeed: () => void;
+  loginAsRealUser: (u: User) => void;
 }
 
 const initialData = () => ({
@@ -77,6 +78,16 @@ export const useApp = create<AppState>()(
         set((s) => {
           const u = s.users.find((x) => x.id === userId);
           return { currentUserId: userId, activeBrand: u?.brand ?? s.activeBrand };
+        });
+      },
+      loginAsRealUser: (u) => {
+        set((s) => {
+          const exists = s.users.some((x) => x.id === u.id);
+          return {
+            users: exists ? s.users.map((x) => (x.id === u.id ? u : x)) : [u, ...s.users],
+            currentUserId: u.id,
+            activeBrand: u.brand,
+          };
         });
       },
       logout: () => set({ currentUserId: null }),
