@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fullName } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
+import { SEED_PRODUCTS } from "@/data/seed";
 
 const REASONS = [
   "Nueva compra",
@@ -363,7 +365,6 @@ export default function Recommendations() {
       <ScanDialog
         open={scanOpen}
         onOpenChange={setScanOpen}
-        products={catalog.slice(0, 8)}
         onPick={(p) => {
           toggle(p);
           setScanOpen(false);
@@ -409,29 +410,31 @@ function formatMoneyShort(n: number) {
 function ScanDialog({
   open,
   onOpenChange,
-  products,
   onPick,
 }: {
   open: boolean;
   onOpenChange: (b: boolean) => void;
-  products: Product[];
   onPick: (p: Product) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Escáner SKU</DialogTitle>
+          <DialogTitle className="font-display text-xl">Escáner SKU (cámara)</DialogTitle>
         </DialogHeader>
-        <div className="aspect-video rounded-lg border-2 border-dashed border-primary/40 bg-gradient-soft flex items-center justify-center relative overflow-hidden">
-          <ScanLine className="size-10 text-primary/60 animate-pulse" />
-          <div className="absolute inset-x-6 top-1/2 h-px bg-primary/60 animate-pulse" />
-        </div>
-        <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto">
-          {products.map((p) => (
-            <ProductCard key={p.sku} product={p} compact onClick={() => onPick(p)} />
-          ))}
-        </div>
+        <BarcodeScanner
+          onClose={() => onOpenChange(false)}
+          onDetect={(code) => {
+            const found = SEED_PRODUCTS.find(
+              (p) => p.sku.toLowerCase() === code.toLowerCase(),
+            );
+            if (found) {
+              onPick(found);
+            } else {
+              toast.error(`SKU no reconocido: ${code}`);
+            }
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
