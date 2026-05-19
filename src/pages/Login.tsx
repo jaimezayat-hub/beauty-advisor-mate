@@ -11,6 +11,7 @@ import { ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,6 +25,22 @@ export default function Login() {
   const [realPassword, setRealPassword] = useState("");
   const [signupName, setSignupName] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
+
+  const handleGoogle = async () => {
+    setAuthBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setAuthBusy(false);
+      toast.error("No se pudo iniciar con Google", { description: (result.error as Error).message });
+      return;
+    }
+    if (result.redirected) return;
+    setAuthBusy(false);
+    toast.success("Sesión iniciada");
+    navigate("/");
+  };
 
   useEffect(() => {
     setActiveBrand(brand);
@@ -199,6 +216,15 @@ export default function Login() {
                   </Button>
                 </div>
               </form>
+              <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em]">
+                  <span className="bg-background px-2 text-muted-foreground">o</span>
+                </div>
+              </div>
+              <Button type="button" variant="outline" size="lg" className="w-full h-12" onClick={handleGoogle} disabled={authBusy}>
+                Continuar con Google
+              </Button>
               <p className="text-xs text-muted-foreground">
                 Cuentas nuevas inician con rol <b>Beauty Advisor</b>. Un Administrador Central puede asignar otros roles desde Configuración.
               </p>
