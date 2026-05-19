@@ -538,6 +538,55 @@ export type Database = {
           },
         ]
       }
+      goal_assignments: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          region_code: string | null
+          store_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          region_code?: string | null
+          store_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          region_code?: string | null
+          store_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_assignments_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_assignments_region_code_fkey"
+            columns: ["region_code"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "goal_assignments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       goals: {
         Row: {
           brand: Database["public"]["Enums"]["brand"]
@@ -1399,7 +1448,132 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_followups_done_daily: {
+        Row: {
+          ba_id: string | null
+          day: string | null
+          followups_done: number | null
+          store_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_kpi_ba_daily: {
+        Row: {
+          avg_ticket: number | null
+          ba_id: string | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          day: string | null
+          sales: number | null
+          store_id: string | null
+          tickets: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_kpi_region_daily: {
+        Row: {
+          avg_ticket: number | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          day: string | null
+          region_code: string | null
+          sales: number | null
+          tickets: number | null
+          unique_consumers: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stores_region_code_fkey"
+            columns: ["region_code"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_kpi_store_daily: {
+        Row: {
+          avg_ticket: number | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          day: string | null
+          sales: number | null
+          store_id: string | null
+          tickets: number | null
+          unique_consumers: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_new_consumers_daily: {
+        Row: {
+          ba_id: string | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          day: string | null
+          new_consumers: number | null
+          store_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumers_owner_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_visits_daily: {
+        Row: {
+          ba_id: string | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          day: string | null
+          store_id: string | null
+          visits: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_scope: {
@@ -1413,6 +1587,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       user_brand: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["brand"]
