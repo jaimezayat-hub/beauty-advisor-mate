@@ -24,7 +24,7 @@ export function AuthSync() {
         email: profile?.email ?? email ?? "",
         role: pickPrimaryRole(roles),
         brand: (profile?.brand as User["brand"]) ?? "lancome",
-        storeId: profile?.store_id ?? "store-pdh-polanco",
+        storeId: profile?.store_id ?? "",
         region: profile?.region ?? undefined,
         active: profile?.active ?? true,
       };
