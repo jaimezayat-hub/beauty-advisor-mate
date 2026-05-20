@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useApp, useCurrentUser } from "@/store/useApp";
+import { useConsumersList } from "@/lib/db/useConsumers";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,12 +18,28 @@ const FILTERS: ("Todas" | Segment)[] = ["Todas", "VIP", "Recurrente", "Nueva", "
 
 export default function Consumers() {
   const user = useCurrentUser()!;
-  const { consumers, users, stores } = useApp();
+  const { consumers: seedConsumers, users, stores, isRealSession } = useApp();
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState<(typeof FILTERS)[number]>("Todas");
   const [scope, setScope] = useState<"mias" | "todas">(user.role === "ba" ? "mias" : "todas");
 
+  const dbList = useConsumersList(
+    {
+      search: q,
+      segment: seg,
+      brand: user.role === "ba" ? user.brand : undefined,
+    },
+    isRealSession,
+  );
+
   const list = useMemo(() => {
+    if (isRealSession) {
+      let l = dbList.data ?? [];
+      if (user.role !== "ba" && scope === "mias") {
+        l = l.filter((c) => c.assignedBaId === user.id);
+      }
+      return l;
+    }
     const userScope = getScope(user);
     const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
     const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
@@ -47,7 +64,7 @@ export default function Consumers() {
     return l.sort((a, b) =>
       (b.lastContactAt ?? "").localeCompare(a.lastContactAt ?? ""),
     );
-  }, [consumers, users, stores, q, seg, scope, user]);
+  }, [seedConsumers, users, stores, q, seg, scope, user, isRealSession, dbList.data]);
 
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8">
