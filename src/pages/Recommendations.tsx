@@ -17,6 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { fullName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
+import { useProductsList } from "@/lib/db/useProducts";
+import { useLogWhatsapp } from "@/lib/db/useFollowUps";
 
 const REASONS = [
   "Nueva compra",
@@ -29,7 +31,12 @@ const REASONS = [
 
 export default function Recommendations() {
   const user = useCurrentUser()!;
-  const { consumers, purchases, addRecommendation, addMessage } = useApp();
+  const { consumers, purchases, addRecommendation, addMessage, isRealSession } = useApp();
+  const logWa = useLogWhatsapp();
+  const dbProducts = useProductsList(user.brand, isRealSession);
+  const PRODUCT_POOL: Product[] = isRealSession && dbProducts.data?.length
+    ? dbProducts.data
+    : SEED_PRODUCTS;
   const [params] = useSearchParams();
   const preId = params.get("consumerId");
   const [consumer, setConsumer] = useState<Consumer | null>(
@@ -53,7 +60,7 @@ export default function Recommendations() {
     );
   }, [purchases, consumer]);
 
-  const allBrandProducts = SEED_PRODUCTS.filter((p) => p.brand === brand);
+  const allBrandProducts = PRODUCT_POOL.filter((p) => p.brand === brand);
 
   // Smart suggestions
   const suggestions = useMemo<{ p: Product; reason: string }[]>(() => {
@@ -68,7 +75,7 @@ export default function Recommendations() {
         const days = (now - new Date(p.date).getTime()) / 86400000;
         if (days >= 30 && days <= 90) {
           p.lines.forEach((l) => {
-            const prod = SEED_PRODUCTS.find((x) => x.sku === l.sku);
+              const prod = PRODUCT_POOL.find((x) => x.sku === l.sku);
             if (prod && !out.some((o) => o.p.sku === prod.sku)) {
               out.push({ p: prod, reason: "Reposición sugerida" });
             }
