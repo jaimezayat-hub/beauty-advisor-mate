@@ -1448,6 +1448,86 @@ export type Database = {
       }
     }
     Views: {
+      v_appointments_by_ba_month: {
+        Row: {
+          ba_id: string | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          cancelled: number | null
+          completed: number | null
+          month: string | null
+          no_show: number | null
+          store_id: string | null
+          total: number | null
+          upcoming: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_consumers_by_ba_month: {
+        Row: {
+          ba_id: string | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          month: string | null
+          new_consumers: number | null
+          store_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumers_owner_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consumers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_followups_by_ba_month: {
+        Row: {
+          ba_id: string | null
+          completed: number | null
+          month: string | null
+          pending: number | null
+          store_id: string | null
+          total: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       v_followups_done_daily: {
         Row: {
           ba_id: string | null
@@ -1557,6 +1637,58 @@ export type Database = {
           },
           {
             foreignKeyName: "consumers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_sales_by_ba_month: {
+        Row: {
+          avg_ticket: number | null
+          ba_id: string | null
+          brand: Database["public"]["Enums"]["brand"] | null
+          month: string | null
+          sales: number | null
+          store_id: string | null
+          transactions: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      v_samples_by_ba_month: {
+        Row: {
+          ba_id: string | null
+          converted: number | null
+          delivered: number | null
+          month: string | null
+          store_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sample_deliveries_ba_id_fkey"
+            columns: ["ba_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sample_deliveries_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
