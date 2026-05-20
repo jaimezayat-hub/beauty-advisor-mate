@@ -174,3 +174,102 @@ export function consumerToInserts(c: Consumer, ownerBaId: string) {
 
   return { consumerRow, consents, prefs, tags };
 }
+
+// ============================================================
+// Purchases
+// ============================================================
+
+export function mapPurchase(p: DbPurchase, items: DbPurchaseItem[] = []): Purchase {
+  const lines: PurchaseLine[] = items.map((it) => ({
+    sku: it.sku_snapshot,
+    name: it.name_snapshot,
+    qty: it.qty,
+    price: Number(it.unit_price ?? 0),
+  }));
+  return {
+    id: p.id,
+    consumerId: p.consumer_id,
+    baId: p.ba_id,
+    storeId: p.store_id,
+    brand: p.brand as Brand,
+    date: p.purchased_at,
+    lines,
+    total: Number(p.total ?? 0),
+    ticketNumber: p.ticket_number ?? undefined,
+  };
+}
+
+// ============================================================
+// Appointments
+// ============================================================
+
+const APPT_TYPE_TO_DB: Record<AppointmentType, string> = {
+  "Servicio de Cabina": "consulta",
+  "Facial": "consulta",
+  "Evento Aniversario": "evento",
+  "Cabina VIP": "consulta",
+  "Seguimiento de Productos": "seguimiento",
+  "Masterclass": "evento",
+  "Otro": "consulta",
+};
+
+const APPT_STATUS_TO_DB: Record<AppointmentStatus, string> = {
+  Confirmada: "confirmed",
+  Pendiente: "pending",
+  Cancelada: "cancelled",
+  Reagendada: "rescheduled",
+  Completada: "completed",
+  NoShow: "no_show",
+};
+
+const APPT_STATUS_FROM_DB: Record<string, AppointmentStatus> = {
+  confirmed: "Confirmada",
+  pending: "Pendiente",
+  cancelled: "Cancelada",
+  rescheduled: "Reagendada",
+  completed: "Completada",
+  no_show: "NoShow",
+};
+
+export function mapAppointment(a: DbAppointment): Appointment {
+  // DB collapses our richer UI taxonomy; preserve original type in notes when possible.
+  const uiType: AppointmentType = (() => {
+    const noteTag = (a.notes ?? "").match(/^\[type:(.+?)\]/);
+    if (noteTag) return noteTag[1] as AppointmentType;
+    if (a.type === "evento") return "Evento Aniversario";
+    if (a.type === "seguimiento") return "Seguimiento de Productos";
+    return "Servicio de Cabina";
+  })();
+  const cleanedNotes = (a.notes ?? "").replace(/^\[type:[^\]]+\]\s*/, "") || undefined;
+
+  return {
+    id: a.id,
+    consumerId: a.consumer_id,
+    baId: a.ba_id,
+    storeId: a.store_id,
+    date: a.scheduled_at,
+    type: uiType,
+    status: APPT_STATUS_FROM_DB[a.status] ?? "Pendiente",
+    notes: cleanedNotes,
+  };
+}
+
+export function appointmentToInsert(a: Appointment, brand: Brand) {
+  return {
+    consumer_id: a.consumerId,
+    ba_id: a.baId,
+    store_id: a.storeId,
+    brand,
+    scheduled_at: a.date,
+    type: APPT_TYPE_TO_DB[a.type] as "consulta" | "seguimiento" | "evento",
+    status: APPT_STATUS_TO_DB[a.status] as
+      | "pending"
+      | "confirmed"
+      | "cancelled"
+      | "rescheduled"
+      | "completed"
+      | "no_show",
+    notes: a.notes ? `[type:${a.type}] ${a.notes}` : `[type:${a.type}]`,
+    created_by: a.baId,
+  };
+}
