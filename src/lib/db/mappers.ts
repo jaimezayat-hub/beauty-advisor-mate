@@ -281,3 +281,101 @@ export function appointmentToInsert(a: Appointment, brand: Brand) {
     created_by: a.baId,
   };
 }
+
+// ============================================================
+// Follow-ups
+// ============================================================
+
+const FU_TRIGGER_TO_DB: Record<FollowUp["type"], string> = {
+  "3 meses": "post_purchase",
+  "6 meses": "post_purchase",
+  "Cumpleaños": "birthday",
+  "Reposición": "post_purchase",
+  "Evento especial": "manual",
+};
+
+const FU_TRIGGER_FROM_DB: Record<string, FollowUp["type"]> = {
+  post_purchase: "3 meses",
+  birthday: "Cumpleaños",
+  inactivity: "Evento especial",
+  sample: "Reposición",
+  manual: "Evento especial",
+};
+
+const FU_OUTCOME_TO_DB: Record<NonNullable<FollowUp["outcome"]>, string> = {
+  "Convirtió": "converted",
+  "Necesita revisita": "contacted",
+  "Sin interés": "opted_out",
+  "Pendiente respuesta": "pending",
+};
+
+const FU_OUTCOME_FROM_DB: Record<string, NonNullable<FollowUp["outcome"]>> = {
+  converted: "Convirtió",
+  contacted: "Necesita revisita",
+  opted_out: "Sin interés",
+  no_answer: "Pendiente respuesta",
+  pending: "Pendiente respuesta",
+};
+
+export function mapFollowUp(f: DbFollowUp): FollowUp {
+  return {
+    id: f.id,
+    consumerId: f.consumer_id,
+    baId: f.ba_id,
+    date: f.due_at,
+    type: FU_TRIGGER_FROM_DB[f.trigger as string] ?? "Evento especial",
+    notes: f.notes ?? undefined,
+    outcome: FU_OUTCOME_FROM_DB[f.outcome as string] ?? "Pendiente respuesta",
+    status:
+      f.completed_at != null
+        ? "completado"
+        : f.outcome === "opted_out"
+        ? "omitido"
+        : "pendiente",
+  };
+}
+
+export function followUpToInsert(f: FollowUp, storeId: string) {
+  return {
+    consumer_id: f.consumerId,
+    ba_id: f.baId,
+    store_id: storeId,
+    due_at: f.nextDate ?? f.date,
+    trigger: FU_TRIGGER_TO_DB[f.type] as
+      | "post_purchase"
+      | "birthday"
+      | "inactivity"
+      | "sample"
+      | "manual",
+    outcome: (f.outcome
+      ? FU_OUTCOME_TO_DB[f.outcome]
+      : "pending") as
+      | "contacted"
+      | "no_answer"
+      | "opted_out"
+      | "converted"
+      | "pending",
+    channel: "whatsapp" as const,
+    completed_at: f.status === "completado" ? f.date : null,
+    notes: f.notes ?? null,
+  };
+}
+
+// ============================================================
+// Sample deliveries
+// ============================================================
+
+export function mapSampleDelivery(
+  d: DbSampleDelivery,
+  meta?: { productName?: string; sku?: string },
+): Sample {
+  return {
+    id: d.id,
+    consumerId: d.consumer_id,
+    baId: d.ba_id,
+    date: d.delivered_at,
+    productName: meta?.productName ?? "Muestra",
+    sku: meta?.sku,
+    converted: !!d.converted_purchase_id,
+  };
+}
