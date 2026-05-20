@@ -385,6 +385,9 @@ export default function Recommendations() {
         text={lookbookText}
         onSent={() => {
           if (!consumer) return;
+          if (isRealSession) {
+            logWa.mutate({ consumerId: consumer.id, body: lookbookText });
+          }
           addMessage({
             id: `m-${Date.now()}`,
             consumerId: consumer.id,
