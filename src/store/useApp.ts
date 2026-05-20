@@ -29,6 +29,7 @@ interface AppState {
   // Auth + brand
   currentUserId: string | null;
   activeBrand: Brand;
+  isRealSession: boolean;
   // Data
   users: User[];
   stores: Store[];
@@ -73,11 +74,16 @@ export const useApp = create<AppState>()(
     (set) => ({
       currentUserId: null,
       activeBrand: "lancome",
+      isRealSession: false,
       ...initialData(),
       login: (userId) => {
         set((s) => {
           const u = s.users.find((x) => x.id === userId);
-          return { currentUserId: userId, activeBrand: u?.brand ?? s.activeBrand };
+          return {
+            currentUserId: userId,
+            activeBrand: u?.brand ?? s.activeBrand,
+            isRealSession: false,
+          };
         });
       },
       loginAsRealUser: (u) => {
@@ -87,10 +93,11 @@ export const useApp = create<AppState>()(
             users: exists ? s.users.map((x) => (x.id === u.id ? u : x)) : [u, ...s.users],
             currentUserId: u.id,
             activeBrand: u.brand,
+            isRealSession: true,
           };
         });
       },
-      logout: () => set({ currentUserId: null }),
+      logout: () => set({ currentUserId: null, isRealSession: false }),
       setActiveBrand: (b) => set({ activeBrand: b }),
       addConsumer: (c) => set((s) => ({ consumers: [c, ...s.consumers] })),
       updateConsumer: (id, patch) =>

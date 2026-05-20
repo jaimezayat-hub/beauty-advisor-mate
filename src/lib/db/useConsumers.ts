@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { mapConsumer, consumerToInserts } from "./mappers";
 import type { Consumer, Segment } from "@/lib/types";
 
-export const consumersKey = (filters?: Record<string, unknown>) =>
+export const consumersKey = (filters?: unknown) =>
   ["consumers", filters ?? {}] as const;
 export const consumerKey = (id: string) => ["consumer", id] as const;
 
@@ -95,21 +95,27 @@ export function useCreateConsumer() {
       const tasks: Promise<unknown>[] = [];
       if (consents.length)
         tasks.push(
-          supabase
-            .from("consumer_consents")
-            .insert(consents.map((x) => ({ ...x, consumer_id: cid }))),
+          Promise.resolve(
+            supabase
+              .from("consumer_consents")
+              .insert(consents.map((x) => ({ ...x, consumer_id: cid }))),
+          ),
         );
       if (prefs.length)
         tasks.push(
-          supabase
-            .from("consumer_preferences")
-            .insert(prefs.map((x) => ({ ...x, consumer_id: cid }))),
+          Promise.resolve(
+            supabase
+              .from("consumer_preferences")
+              .insert(prefs.map((x) => ({ ...x, consumer_id: cid }))),
+          ),
         );
       if (tags.length)
         tasks.push(
-          supabase
-            .from("consumer_tags")
-            .insert(tags.map((tag) => ({ consumer_id: cid, tag }))),
+          Promise.resolve(
+            supabase
+              .from("consumer_tags")
+              .insert(tags.map((tag) => ({ consumer_id: cid, tag }))),
+          ),
         );
 
       // Aviso de privacidad vigente
@@ -123,12 +129,14 @@ export function useCreateConsumer() {
         .maybeSingle();
       if (notice) {
         tasks.push(
-          supabase.from("notice_acceptances").insert({
-            consumer_id: cid,
-            notice_id: notice.id,
-            captured_by_ba: uid,
-            signature_ref: c.privacy.signaturePng ?? null,
-          }),
+          Promise.resolve(
+            supabase.from("notice_acceptances").insert({
+              consumer_id: cid,
+              notice_id: notice.id,
+              captured_by_ba: uid,
+              signature_ref: c.privacy.signaturePng ?? null,
+            }),
+          ),
         );
       }
 
