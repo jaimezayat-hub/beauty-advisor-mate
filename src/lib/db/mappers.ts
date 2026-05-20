@@ -205,10 +205,10 @@ export function mapPurchase(p: DbPurchase, items: DbPurchaseItem[] = []): Purcha
 
 const APPT_TYPE_TO_DB: Record<AppointmentType, string> = {
   "Servicio de Cabina": "consulta",
-  "Facial": "consulta",
+  "Facial": "makeover",
   "Evento Aniversario": "evento",
-  "Cabina VIP": "consulta",
-  "Seguimiento de Productos": "seguimiento",
+  "Cabina VIP": "makeover",
+  "Seguimiento de Productos": "follow_up",
   "Masterclass": "evento",
   "Otro": "consulta",
 };
@@ -217,8 +217,8 @@ const APPT_STATUS_TO_DB: Record<AppointmentStatus, string> = {
   Confirmada: "confirmed",
   Pendiente: "pending",
   Cancelada: "cancelled",
-  Reagendada: "rescheduled",
-  Completada: "completed",
+  Reagendada: "pending",
+  Completada: "done",
   NoShow: "no_show",
 };
 
@@ -226,8 +226,7 @@ const APPT_STATUS_FROM_DB: Record<string, AppointmentStatus> = {
   confirmed: "Confirmada",
   pending: "Pendiente",
   cancelled: "Cancelada",
-  rescheduled: "Reagendada",
-  completed: "Completada",
+  done: "Completada",
   no_show: "NoShow",
 };
 
@@ -237,7 +236,8 @@ export function mapAppointment(a: DbAppointment): Appointment {
     const noteTag = (a.notes ?? "").match(/^\[type:(.+?)\]/);
     if (noteTag) return noteTag[1] as AppointmentType;
     if (a.type === "evento") return "Evento Aniversario";
-    if (a.type === "seguimiento") return "Seguimiento de Productos";
+    if (a.type === "follow_up") return "Seguimiento de Productos";
+    if (a.type === "makeover") return "Facial";
     return "Servicio de Cabina";
   })();
   const cleanedNotes = (a.notes ?? "").replace(/^\[type:[^\]]+\]\s*/, "") || undefined;
@@ -261,13 +261,16 @@ export function appointmentToInsert(a: Appointment, brand: Brand) {
     store_id: a.storeId,
     brand,
     scheduled_at: a.date,
-    type: APPT_TYPE_TO_DB[a.type] as "consulta" | "seguimiento" | "evento",
+    type: APPT_TYPE_TO_DB[a.type] as
+      | "consulta"
+      | "makeover"
+      | "follow_up"
+      | "evento",
     status: APPT_STATUS_TO_DB[a.status] as
       | "pending"
       | "confirmed"
+      | "done"
       | "cancelled"
-      | "rescheduled"
-      | "completed"
       | "no_show",
     notes: a.notes ? `[type:${a.type}] ${a.notes}` : `[type:${a.type}]`,
     created_by: a.baId,
