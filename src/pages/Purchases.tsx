@@ -283,6 +283,20 @@ export default function Purchases() {
               />
             </div>
           </div>
+          <div>
+            <Label>Foto del ticket (opcional)</Label>
+            <Input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => setTicketFile(e.target.files?.[0] ?? null)}
+              className="h-11 mt-2"
+            />
+            {ticketFile && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {ticketFile.name} · {(ticketFile.size / 1024).toFixed(0)} KB
+              </p>
+            )}
+          </div>
         </Card>
 
         <Card className="p-6 shadow-luxe gradient-soft sticky top-6 self-start">
