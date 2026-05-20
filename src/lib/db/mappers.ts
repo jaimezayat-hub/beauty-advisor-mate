@@ -8,6 +8,11 @@ import type {
   SkinConcern,
   SkinType,
   Brand,
+  Purchase,
+  PurchaseLine,
+  Appointment,
+  AppointmentStatus,
+  AppointmentType,
 } from "@/lib/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -16,6 +21,9 @@ type DbConsent = Database["public"]["Tables"]["consumer_consents"]["Row"];
 type DbPref = Database["public"]["Tables"]["consumer_preferences"]["Row"];
 type DbTag = Database["public"]["Tables"]["consumer_tags"]["Row"];
 type DbNotice = Database["public"]["Tables"]["notice_acceptances"]["Row"];
+type DbPurchase = Database["public"]["Tables"]["purchases"]["Row"];
+type DbPurchaseItem = Database["public"]["Tables"]["purchase_items"]["Row"];
+type DbAppointment = Database["public"]["Tables"]["appointments"]["Row"];
 
 const VALID_SEGMENTS: Segment[] = ["VIP", "Recurrente", "Nueva", "EnRiesgo"];
 const VALID_INTERESTS: Interest[] = ["Fragancia", "Skincare", "Makeup"];
