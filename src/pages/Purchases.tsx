@@ -19,19 +19,20 @@ import { SEED_PRODUCTS } from "@/data/seed";
 import { getScope, inScope } from "@/lib/permissions";
 import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
 import { usePurchasesList, useCreatePurchase } from "@/lib/db/usePurchases";
+import { useProductsList } from "@/lib/db/useProducts";
 
 type Line = { product: Product; qty: number };
 
 export default function Purchases() {
   const user = useCurrentUser()!;
   const { consumers, purchases: seedPurchases, users, stores, addPurchase, isRealSession } = useApp();
-  const PRODUCTS = SEED_PRODUCTS;
-
   const dbPurchases = usePurchasesList(
     { brand: user.role === "ba" ? user.brand : "all" },
     isRealSession,
   );
   const createPurchase = useCreatePurchase();
+  const dbProducts = useProductsList(user.brand, isRealSession);
+  const PRODUCTS = isRealSession && dbProducts.data?.length ? dbProducts.data : SEED_PRODUCTS;
   const purchases = isRealSession ? (dbPurchases.data ?? []) : seedPurchases;
 
   const [params] = useSearchParams();
