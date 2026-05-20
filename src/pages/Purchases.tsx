@@ -18,13 +18,21 @@ import { Link, useSearchParams } from "react-router-dom";
 import { SEED_PRODUCTS } from "@/data/seed";
 import { getScope, inScope } from "@/lib/permissions";
 import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
+import { usePurchasesList, useCreatePurchase } from "@/lib/db/usePurchases";
 
 type Line = { product: Product; qty: number };
 
 export default function Purchases() {
   const user = useCurrentUser()!;
-  const { consumers, purchases, users, stores, addPurchase } = useApp();
+  const { consumers, purchases: seedPurchases, users, stores, addPurchase, isRealSession } = useApp();
   const PRODUCTS = SEED_PRODUCTS;
+
+  const dbPurchases = usePurchasesList(
+    { brand: user.role === "ba" ? user.brand : "all" },
+    isRealSession,
+  );
+  const createPurchase = useCreatePurchase();
+  const purchases = isRealSession ? (dbPurchases.data ?? []) : seedPurchases;
 
   const [params] = useSearchParams();
   const preConsumerId = params.get("consumerId");
@@ -38,6 +46,7 @@ export default function Purchases() {
   const [search, setSearch] = useState("");
   const [showCatalog, setShowCatalog] = useState(false);
   const [historyFilter, setHistoryFilter] = useState({ from: "", to: "", baId: "all", brand: "all" });
+  const [ticketFile, setTicketFile] = useState<File | null>(null);
 
   const brand = consumer?.brand ?? user.brand;
   const catalog = useMemo(
@@ -70,7 +79,7 @@ export default function Purchases() {
     );
   };
 
-  const save = () => {
+  const save = async () => {
     if (!consumer) return toast.error("Selecciona una consumidora");
     if (lines.length === 0) return toast.error("Agrega al menos un producto");
     const p: Purchase = {
@@ -84,26 +93,37 @@ export default function Purchases() {
       total,
       ticketNumber: ticket || undefined,
     };
-    addPurchase(p);
-    toast.success("Compra registrada", { description: formatMoney(total) });
-    setLines([]);
-    setTicket("");
-    setConsumer(null);
+    try {
+      if (isRealSession) {
+        await createPurchase.mutateAsync({ purchase: p, ticketFile });
+      } else {
+        addPurchase(p);
+      }
+      toast.success("Compra registrada", { description: formatMoney(total) });
+      setLines([]);
+      setTicket("");
+      setTicketFile(null);
+      setConsumer(null);
+    } catch (e: any) {
+      toast.error("No se pudo registrar la compra", { description: e?.message ?? String(e) });
+    }
   };
 
   // History filtering
   const history = useMemo(() => {
-    const scope = getScope(user);
     const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
     const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
-    return purchases
-      .filter((p) => inScope(scope, p, { baToStoreId, storeIdToRegion }))
+    const scope = getScope(user);
+    const scoped = isRealSession
+      ? purchases // RLS ya filtró
+      : purchases.filter((p) => inScope(scope, p, { baToStoreId, storeIdToRegion }));
+    return scoped
       .filter((p) => (historyFilter.brand === "all" ? true : p.brand === historyFilter.brand))
       .filter((p) => (historyFilter.baId === "all" ? true : p.baId === historyFilter.baId))
       .filter((p) => (historyFilter.from ? p.date >= historyFilter.from : true))
       .filter((p) => (historyFilter.to ? p.date <= historyFilter.to + "T23:59:59" : true))
       .sort((a, b) => b.date.localeCompare(a.date));
-  }, [purchases, historyFilter, user, users, stores]);
+  }, [purchases, historyFilter, user, users, stores, isRealSession]);
 
   const exportHistory = () => {
     const rows = history.flatMap((p) => {
