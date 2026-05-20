@@ -48,6 +48,7 @@ import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
+import { usePerformanceKpis } from "@/lib/db/usePerformance";
 
 const PERIODS = ["Esta semana", "Este mes", "Últimos 3 meses", "Personalizado"];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--gold))"];
@@ -57,8 +58,9 @@ type KpiFocus = "ventas" | "clienteling" | "adopcion";
 
 export default function Performance() {
   const user = useCurrentUser()!;
-  const { users, baKpis, stores, appointments } = useApp();
+  const { users, baKpis, stores, appointments, isRealSession } = useApp();
   const [period, setPeriod] = useState("Este mes");
+  const { data: liveKpis } = usePerformanceKpis(isRealSession);
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
   const scope = getScope(user);
@@ -78,12 +80,20 @@ export default function Performance() {
   // RF-31 — métricas reales de reagendadas/canceladas a partir de citas
   const baIds = new Set(profiles.map((p) => p.baId));
   const visibleAppts = appointments.filter((a) => baIds.has(a.baId));
-  const apptStats = {
+  const seedStats = {
     total: visibleAppts.length,
     rescheduled: visibleAppts.filter((a) => a.status === "Reagendada").length,
     cancelled: visibleAppts.filter((a) => a.status === "Cancelada").length,
     noShow: visibleAppts.filter((a) => a.status === "NoShow").length,
   };
+  const apptStats = liveKpis
+    ? {
+        total: liveKpis.apptTotal,
+        rescheduled: 0,
+        cancelled: liveKpis.apptCancelled,
+        noShow: liveKpis.apptNoShow,
+      }
+    : seedStats;
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
