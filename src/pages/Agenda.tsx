@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useAppointmentsList, useCreateAppointment, useRealtimeInvalidate } from "@/lib/db/useAppointments";
 
 const TYPES: AppointmentType[] = [
   "Servicio de Cabina",
@@ -38,7 +39,15 @@ const TYPE_COLORS: Record<AppointmentType, string> = {
 
 export default function Agenda() {
   const user = useCurrentUser()!;
-  const { appointments, consumers, users, addAppointment, addMessage } = useApp();
+  const { appointments: seedAppointments, consumers, users, addAppointment, addMessage, isRealSession } = useApp();
+
+  const dbAppts = useAppointmentsList(
+    { brand: user.role === "ba" ? user.brand : "all" },
+    isRealSession,
+  );
+  const createAppt = useCreateAppointment();
+  useRealtimeInvalidate("appointments", ["appointments"], isRealSession);
+  const appointments = isRealSession ? (dbAppts.data ?? []) : seedAppointments;
   const [confirmedIds, setConfirmedIds] = useState<Set<string>>(new Set());
 
   const [view, setView] = useState<"semana" | "mes">("semana");
@@ -358,10 +367,18 @@ export default function Agenda() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         defaultDate={defaultDate}
-        onCreate={(a) => {
-          addAppointment(a);
-          toast.success("Cita creada");
-          setCreateOpen(false);
+        onCreate={async (a) => {
+          try {
+            if (isRealSession) {
+              await createAppt.mutateAsync(a);
+            } else {
+              addAppointment(a);
+            }
+            toast.success("Cita creada");
+            setCreateOpen(false);
+          } catch (e: any) {
+            toast.error("No se pudo crear la cita", { description: e?.message ?? String(e) });
+          }
         }}
       />
     </div>
