@@ -44,7 +44,7 @@ export default function Consumers() {
     const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
     const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
     // RF-51..54 — alcance por rol; BA sólo ve su cartera, gerentes su tienda, supervisor su región.
-    let l = consumers.filter((c) =>
+    let l = seedConsumers.filter((c) =>
       inScope(userScope, c, { baToStoreId, storeIdToRegion }),
     );
     if (user.role === "ba") l = l.filter((c) => c.brand === user.brand);

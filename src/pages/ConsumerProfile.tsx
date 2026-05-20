@@ -1,5 +1,6 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useApp, useCurrentUser } from "@/store/useApp";
+import { useConsumerDetail } from "@/lib/db/useConsumers";
 import { getScope, inScope } from "@/lib/permissions";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,14 +50,20 @@ export default function ConsumerProfile() {
     messages,
     users,
     stores,
+    isRealSession,
   } = useApp();
-  const c = consumers.find((x) => x.id === id);
+  const detail = useConsumerDetail(id, isRealSession);
+  const c = isRealSession ? detail.data : consumers.find((x) => x.id === id);
+  if (isRealSession && detail.isLoading) {
+    return <div className="p-12 text-center text-muted-foreground">Cargando…</div>;
+  }
   if (!c) return <Navigate to="/consumidoras" replace />;
   // RF-50/51 — un BA solo accede a sus consumidoras; gerentes a su tienda; supervisor a su región
   const scope = getScope(user);
   const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
-  if (!inScope(scope, c, { baToStoreId, storeIdToRegion })) {
+  // En sesión real RLS ya filtra; en demo aplicamos scope local.
+  if (!isRealSession && !inScope(scope, c, { baToStoreId, storeIdToRegion })) {
     return <Navigate to="/consumidoras" replace />;
   }
 

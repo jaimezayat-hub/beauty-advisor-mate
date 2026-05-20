@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp, useCurrentStore, useCurrentUser } from "@/store/useApp";
+import { useCreateConsumer } from "@/lib/db/useConsumers";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { OnboardingStepper } from "@/components/clienteling/onboarding/OnboardingStepper";
 import { StepIdentity } from "@/components/clienteling/onboarding/StepIdentity";
@@ -31,6 +32,8 @@ export default function NewConsumer() {
   const store = useCurrentStore();
   const navigate = useNavigate();
   const addConsumer = useApp((s) => s.addConsumer);
+  const isRealSession = useApp((s) => s.isRealSession);
+  const createReal = useCreateConsumer();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [draft, setDraft] = useState<OnboardingDraft>(emptyOnboarding());
@@ -69,7 +72,7 @@ export default function NewConsumer() {
     setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s));
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!allValid) {
       toast.error("Revisa los pasos marcados con error");
       return;
@@ -111,6 +114,16 @@ export default function NewConsumer() {
       lastContactAt: now,
       notes: draft.notes.trim() || undefined,
     };
+    if (isRealSession) {
+      try {
+        const newId = await createReal.mutateAsync(c);
+        toast.success("✓ Registro guardado en la nube. Aviso de privacidad aceptado.");
+        navigate(`/consumidoras/${newId}`);
+      } catch (e) {
+        toast.error("No se pudo guardar", { description: (e as Error).message });
+      }
+      return;
+    }
     addConsumer(c);
     toast.success("✓ Registro completado. El aviso de privacidad ha sido aceptado y firmado.");
     navigate(`/consumidoras/${c.id}`);
