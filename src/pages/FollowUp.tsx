@@ -33,11 +33,18 @@ import { TEMPLATES, type TemplateDef, renderTemplate } from "@/lib/templates";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getScope, inScope } from "@/lib/permissions";
+import { useFollowUpsList, useCreateFollowUp, useLogWhatsapp } from "@/lib/db/useFollowUps";
+import { useRealtimeInvalidate } from "@/lib/db/useAppointments";
 
 export default function FollowUpPage() {
   const user = useCurrentUser()!;
   const store = useCurrentStore();
-  const { consumers, followUps, users, stores, addFollowUp, addMessage } = useApp();
+  const { consumers, followUps: seedFollowUps, users, stores, addFollowUp, addMessage, isRealSession } = useApp();
+  const dbFollowUps = useFollowUpsList(isRealSession);
+  const createFollowUp = useCreateFollowUp();
+  const logWa = useLogWhatsapp();
+  useRealtimeInvalidate("follow_ups", ["follow_ups"], isRealSession);
+  const followUps = isRealSession ? (dbFollowUps.data ?? []) : seedFollowUps;
   const scope = getScope(user);
   const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
@@ -70,10 +77,12 @@ export default function FollowUpPage() {
   const recentLog = useMemo(
     () =>
       followUps
-        .filter((f) => inScope(scope, f, { baToStoreId, storeIdToRegion }))
+        .filter((f) =>
+          isRealSession ? true : inScope(scope, f, { baToStoreId, storeIdToRegion }),
+        )
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, 12),
-    [followUps, scope, baToStoreId, storeIdToRegion],
+    [followUps, scope, baToStoreId, storeIdToRegion, isRealSession],
   );
 
   return (
@@ -262,9 +271,14 @@ export default function FollowUpPage() {
       <NewFollowUpDialog
         open={recOpen}
         onOpenChange={setRecOpen}
-        onSave={(f) => {
-          addFollowUp(f);
-          toast.success("Seguimiento registrado");
+        onSave={async (f) => {
+          try {
+            if (isRealSession) await createFollowUp.mutateAsync(f);
+            else addFollowUp(f);
+            toast.success("Seguimiento registrado");
+          } catch (e: any) {
+            toast.error("No se pudo registrar", { description: e?.message ?? String(e) });
+          }
         }}
       />
 
@@ -273,6 +287,9 @@ export default function FollowUpPage() {
           state={tplState}
           onClose={() => setTplState(null)}
           onSent={(c, content, type) => {
+            if (isRealSession) {
+              logWa.mutate({ consumerId: c.id, body: content });
+            }
             addMessage({
               id: `m-${Date.now()}`,
               consumerId: c.id,
