@@ -102,7 +102,10 @@ export default function Reports() {
   const periodFollow = inRange(followUps);
 
   // Sales by BA
-  const bas = users.filter((u) => u.role === "ba");
+  const seedBas = users.filter((u) => u.role === "ba");
+  const bas = isRealSession
+    ? realBas.map((b) => ({ id: b.id, name: b.name, brand: b.brand, storeId: b.storeId, role: "ba" as const }))
+    : seedBas;
   const salesByBa = bas.map((b) => ({
     name: b.name.split(" ")[0],
     ventas: periodPurchases.filter((p) => p.baId === b.id).reduce((s, p) => s + p.total, 0),
