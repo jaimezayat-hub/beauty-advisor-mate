@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { GlobalSearch } from "./GlobalSearch";
 import { ROLE_LABEL, canAccessRoute, isManagerRole } from "@/lib/permissions";
 import { signOut } from "@/lib/auth";
+import { NotificationsBell } from "./NotificationsBell";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, end: true },
@@ -179,6 +180,9 @@ export function AppShell() {
             Modo sin conexión — los cambios se sincronizarán al reconectarte.
           </div>
         )}
+        <div className="absolute top-3 right-4 z-30">
+          <NotificationsBell />
+        </div>
         <main key={location.pathname} className="flex-1 overflow-y-auto animate-fade-in">
           <Outlet />
         </main>
