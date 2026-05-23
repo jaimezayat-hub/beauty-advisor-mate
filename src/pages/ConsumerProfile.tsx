@@ -246,7 +246,7 @@ export default function ConsumerProfile() {
             <div className="p-6 lg:p-8">
               <TabsContent value="resumen" className="mt-0 space-y-6">
                 <div className="grid sm:grid-cols-3 gap-3">
-                  <SummaryCard label="Última compra" value={formatDate(c.lastTransactionAt)} />
+                  <SummaryCard label="Última compra" value={formatDate(lastTxAt)} />
                   <SummaryCard label="Total acumulado" value={formatMoney(total)} />
                   <SummaryCard label="Último contacto" value={formatDate(c.lastContactAt)} />
                 </div>
