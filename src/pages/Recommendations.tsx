@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { BarcodeScanner } from "@/components/clienteling/BarcodeScanner";
 import { useProductsList } from "@/lib/db/useProducts";
 import { useLogWhatsapp } from "@/lib/db/useFollowUps";
+import { useConsumerTimeline } from "@/lib/db/useConsumers";
 
 const REASONS = [
   "Nueva compra",
@@ -51,14 +52,17 @@ export default function Recommendations() {
   const [filterCat, setFilterCat] = useState<"all" | "Skincare" | "Makeup" | "Fragancia">("all");
 
   const brand = consumer?.brand ?? user.brand;
+  // En sesión real, traemos las compras reales de la consumidora para alimentar reposición / dedupe.
+  const consumerTimeline = useConsumerTimeline(consumer?.id, isRealSession && !!consumer);
+  const consumerPurchases = isRealSession
+    ? consumerTimeline.data?.purchases ?? []
+    : consumer
+    ? purchases.filter((p) => p.consumerId === consumer.id)
+    : [];
   const previousSkus = useMemo(() => {
     if (!consumer) return new Set<string>();
-    return new Set(
-      purchases
-        .filter((p) => p.consumerId === consumer.id)
-        .flatMap((p) => p.lines.map((l) => l.sku)),
-    );
-  }, [purchases, consumer]);
+    return new Set(consumerPurchases.flatMap((p) => p.lines.map((l) => l.sku)));
+  }, [consumerPurchases, consumer]);
 
   const allBrandProducts = PRODUCT_POOL.filter((p) => p.brand === brand);
 
@@ -69,9 +73,7 @@ export default function Recommendations() {
 
     // 1. Replenishment: products bought 30-90 days ago
     const now = Date.now();
-    purchases
-      .filter((p) => p.consumerId === consumer.id)
-      .forEach((p) => {
+    consumerPurchases.forEach((p) => {
         const days = (now - new Date(p.date).getTime()) / 86400000;
         if (days >= 30 && days <= 90) {
           p.lines.forEach((l) => {
@@ -110,7 +112,7 @@ export default function Recommendations() {
       .forEach((p) => out.push({ p, reason: "Best-seller" }));
 
     return out.slice(0, 6);
-  }, [consumer, purchases, allBrandProducts, previousSkus]);
+  }, [consumer, consumerPurchases, allBrandProducts, previousSkus, PRODUCT_POOL]);
 
   const catalog = useMemo(
     () =>
