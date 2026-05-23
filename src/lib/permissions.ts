@@ -69,10 +69,15 @@ export const ROLE_LABEL: Record<Role, string> = {
 export function canAccessRoute(role: Role, route: string): boolean {
   // Soporta rutas con sub-paths (ej: /reportes/x)
   const startsWith = (p: string) => route === p || route.startsWith(p + "/");
-  // RF-51: BA y Admin son los roles operativos → ven Recomendaciones y Seguimiento.
-  // Gerente y Supervisor son roles de supervisión → no.
-  if (startsWith("/recomendaciones") || startsWith("/seguimiento")) {
-    return role === "ba" || role === "central_admin";
+  // Secciones operativas del BA: Agenda, Seguimiento, Recomendaciones y alta
+  // de consumidoras. Admin/Zona/Gerente no las necesitan.
+  if (
+    startsWith("/recomendaciones") ||
+    startsWith("/seguimiento") ||
+    startsWith("/agenda") ||
+    route === "/consumidoras/nueva"
+  ) {
+    return role === "ba";
   }
   if (startsWith("/reportes")) return role !== "ba"; // RF-52
   if (startsWith("/configuracion")) return role === "central_admin"; // RF-54
