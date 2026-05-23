@@ -106,6 +106,8 @@ export default function Reports() {
   const bas = isRealSession
     ? realBas.map((b) => ({ id: b.id, name: b.name, brand: b.brand, storeId: b.storeId, role: "ba" as const }))
     : seedBas;
+  const lookupBa = (id: string | undefined) =>
+    bas.find((b) => b.id === id) ?? users.find((u) => u.id === id);
   const salesByBa = bas.map((b) => ({
     name: b.name.split(" ")[0],
     ventas: periodPurchases.filter((p) => p.baId === b.id).reduce((s, p) => s + p.total, 0),
