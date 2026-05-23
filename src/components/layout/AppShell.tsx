@@ -173,7 +173,7 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {!online && (
           <div className="bg-warning/15 text-warning border-b border-warning/30 text-xs px-4 py-1.5 flex items-center justify-center gap-2">
             <WifiOff className="size-3.5" />
