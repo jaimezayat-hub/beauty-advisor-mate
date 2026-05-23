@@ -214,7 +214,7 @@ export default function Reports() {
 
   const exportConsumers = () => {
     const rows = consumers.map((c) => {
-      const ba = users.find((u) => u.id === c.assignedBaId);
+      const ba = lookupBa(c.assignedBaId);
       return {
         Nombre: c.firstName,
         Apellido: c.lastName,
