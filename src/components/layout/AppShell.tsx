@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { GlobalSearch } from "./GlobalSearch";
 import { ROLE_LABEL, canAccessRoute, isManagerRole } from "@/lib/permissions";
 import { signOut } from "@/lib/auth";
+import { NotificationsBell } from "./NotificationsBell";
 
 const NAV = [
   { to: "/", label: "Inicio", icon: Home, end: true },
@@ -172,13 +173,16 @@ export function AppShell() {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {!online && (
           <div className="bg-warning/15 text-warning border-b border-warning/30 text-xs px-4 py-1.5 flex items-center justify-center gap-2">
             <WifiOff className="size-3.5" />
             Modo sin conexión — los cambios se sincronizarán al reconectarte.
           </div>
         )}
+        <div className="absolute top-3 right-4 z-30">
+          <NotificationsBell />
+        </div>
         <main key={location.pathname} className="flex-1 overflow-y-auto animate-fade-in">
           <Outlet />
         </main>

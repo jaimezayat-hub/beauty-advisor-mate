@@ -8,11 +8,33 @@ import { cn } from "@/lib/utils";
 import { TEMPLATES } from "@/lib/templates";
 import { ROLE_LABEL } from "@/lib/permissions";
 import { signOut } from "@/lib/auth";
+import { Switch } from "@/components/ui/switch";
+import {
+  NOTIF_CHANNELS,
+  useNotificationPrefs,
+  useSetNotificationPref,
+  type NotifChannel,
+} from "@/lib/db/useNotifications";
+
+const CHANNEL_LABEL: Record<NotifChannel, string> = {
+  inapp: "En la app",
+  email: "Email",
+  whatsapp: "WhatsApp",
+  sms: "SMS",
+};
+const CHANNEL_DESC: Record<NotifChannel, string> = {
+  inapp: "Campanita y panel dentro de la herramienta.",
+  email: "Resúmenes y alertas a tu correo corporativo.",
+  whatsapp: "Recordatorios urgentes vía WhatsApp.",
+  sms: "SMS de respaldo cuando no haya conectividad.",
+};
 
 export default function Settings() {
   const user = useCurrentUser()!;
   const store = useCurrentStore();
-  const { activeBrand, setActiveBrand, resetSeed, logout } = useApp();
+  const { activeBrand, setActiveBrand, resetSeed, logout, isRealSession } = useApp();
+  const prefs = useNotificationPrefs(isRealSession);
+  const setPref = useSetNotificationPref();
 
   return (
     <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-8">
@@ -55,8 +77,55 @@ export default function Settings() {
           <Row label="Rol" value={ROLE_LABEL[user.role]} />
           <Row label="Tienda" value={store?.name ?? "—"} />
           <Row label="Marca asignada" value={user.brand === "ysl" ? "YSL Beauty" : "Lancôme"} />
+          <Row label="Sesión" value={isRealSession ? "Lovable Cloud (real)" : "Demo local"} />
         </dl>
       </Card>
+
+      {isRealSession && (
+        <Card className="p-6 shadow-card">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+            Notificaciones
+          </p>
+          <h2 className="font-display text-2xl mt-1 mb-4">Canales</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Elige cómo quieres recibir recordatorios, cumpleaños y alertas de
+            seguimiento.
+          </p>
+          <ul className="divide-y divide-border">
+            {NOTIF_CHANNELS.map((ch) => {
+              const enabled = prefs.data?.[ch] ?? true;
+              return (
+                <li
+                  key={ch}
+                  className="flex items-center justify-between py-3 gap-4"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">{CHANNEL_LABEL[ch]}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {CHANNEL_DESC[ch]}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enabled}
+                    disabled={prefs.isLoading || setPref.isPending}
+                    onCheckedChange={(v) =>
+                      setPref.mutate(
+                        { channel: ch, enabled: v },
+                        {
+                          onSuccess: () =>
+                            toast.success(
+                              `${CHANNEL_LABEL[ch]} ${v ? "activado" : "desactivado"}`,
+                            ),
+                        },
+                      )
+                    }
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
 
       <Card className="p-6 shadow-card">
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Plantillas</p>
