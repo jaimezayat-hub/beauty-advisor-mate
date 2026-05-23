@@ -280,7 +280,7 @@ function KpiCard({ icon, label, value, hint, progress, donut, delta, active, onC
           {donut ? <MiniDonut done={donut[0]} pending={donut[1]} /> : <Sparkline values={[22, 26, 24, 31, 34, 37, 42]} />}
         </div>
         <p className="kpi-label mt-4">{label}</p>
-        <p className="kpi-number mt-2">{value}</p>
+        <p className="kpi-number mt-2 !text-3xl break-all">{value}</p>
         <p className="text-xs text-muted-foreground mt-1">{hint}</p>
         {delta && <p className="text-xs text-success mt-2">{delta}</p>}
         {progress !== undefined && <Progress value={Math.min(progress, 100)} className="h-2 mt-4" />}
@@ -398,12 +398,6 @@ function Charts({ profile, focus, setFocus }: { profile: BaKpiProfile; focus: Kp
           </BarChart>
         </ChartCard>
       </div>
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-4"><div><p className="kpi-label">Actividad diaria</p><h3 className="font-display text-xl mt-1">Mapa de uso en app</h3></div><ChevronDown className="size-4 text-muted-foreground" /></div>
-        <div className="grid grid-cols-7 sm:grid-cols-21 gap-2">
-          {activity.map((d) => <div key={d.day} className="aspect-square rounded-md border border-border" title={`Día ${d.day}`} style={{ background: `hsl(var(--primary) / ${0.08 + d.level * 0.18})` }} />)}
-        </div>
-      </Card>
     </section>
   );
 }
