@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConsumerAvatar } from "@/components/clienteling/Avatar";
 import { SegmentBadge } from "@/components/clienteling/SegmentBadge";
+import { ArcoRequestDialog } from "@/components/clienteling/ArcoRequestDialog";
 import {
   daysBetween,
   daysUntilNextBirthday,
@@ -118,6 +119,12 @@ export default function ConsumerProfile() {
               <Calendar className="size-4 mr-1.5" /> Agendar
             </Link>
           </Button>
+          {isRealSession && (
+            <ArcoRequestDialog
+              consumerId={c.id}
+              consumerName={fullName(c.firstName, c.lastName)}
+            />
+          )}
         </div>
       </div>
 
