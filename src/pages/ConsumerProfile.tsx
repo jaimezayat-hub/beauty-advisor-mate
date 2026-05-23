@@ -1,6 +1,6 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useApp, useCurrentUser } from "@/store/useApp";
-import { useConsumerDetail } from "@/lib/db/useConsumers";
+import { useConsumerDetail, useConsumerTimeline } from "@/lib/db/useConsumers";
 import { getScope, inScope } from "@/lib/permissions";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -53,6 +53,7 @@ export default function ConsumerProfile() {
     isRealSession,
   } = useApp();
   const detail = useConsumerDetail(id, isRealSession);
+  const timeline = useConsumerTimeline(id, isRealSession);
   const c = isRealSession ? detail.data : consumers.find((x) => x.id === id);
   if (isRealSession && detail.isLoading) {
     return <div className="p-12 text-center text-muted-foreground">Cargando…</div>;
@@ -67,12 +68,15 @@ export default function ConsumerProfile() {
     return <Navigate to="/consumidoras" replace />;
   }
 
-  const myPurchases = purchases.filter((p) => p.consumerId === c.id);
-  const myAppts = appointments.filter((a) => a.consumerId === c.id);
+  const t = isRealSession ? timeline.data : undefined;
+  const myPurchases = t?.purchases ?? purchases.filter((p) => p.consumerId === c.id);
+  const myAppts = t?.appointments ?? appointments.filter((a) => a.consumerId === c.id);
+  // Recomendaciones aún no se persisten en DB; siempre desde store.
   const myRecs = recommendations.filter((r) => r.consumerId === c.id);
-  const mySamples = samples.filter((s) => s.consumerId === c.id);
-  const myFollowUps = followUps.filter((f) => f.consumerId === c.id);
-  const myMessages = messages.filter((m) => m.consumerId === c.id);
+  const mySamples = t?.samples ?? samples.filter((s) => s.consumerId === c.id);
+  const myFollowUps = t?.followUps ?? followUps.filter((f) => f.consumerId === c.id);
+  const myMessages = t?.messages ?? messages.filter((m) => m.consumerId === c.id);
+  const lastTxAt = isRealSession ? t?.lastTransactionAt : c.lastTransactionAt;
 
   const total = myPurchases.reduce((s, p) => s + p.total, 0);
   const ba = users.find((u) => u.id === c.assignedBaId);
@@ -80,7 +84,7 @@ export default function ConsumerProfile() {
 
   const birthdayDays = daysUntilNextBirthday(c.birthDate);
   const inactiveDays = c.lastContactAt ? daysBetween(c.lastContactAt) : null;
-  const replenish = c.lastTransactionAt && daysBetween(c.lastTransactionAt) >= 30 && daysBetween(c.lastTransactionAt) <= 90;
+  const replenish = !!lastTxAt && daysBetween(lastTxAt) >= 30 && daysBetween(lastTxAt) <= 90;
   const anniversary = (() => {
     const d = new Date(c.createdAt);
     const next = new Date(new Date().getFullYear(), d.getMonth(), d.getDate());
