@@ -450,7 +450,7 @@ export default function Reports() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {consumers.map((c) => {
-                    const ba = users.find((u) => u.id === c.assignedBaId);
+                    const ba = lookupBa(c.assignedBaId);
                     return (
                       <tr key={c.id} className="hover:bg-muted/30">
                         <td className="px-4 py-3">
