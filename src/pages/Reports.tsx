@@ -297,6 +297,11 @@ export default function Reports() {
 
       {tab === "dashboard" && (
         <div className="space-y-6 animate-fade-in">
+          <p className="text-xs text-muted-foreground">
+            Mostrando <span className="font-semibold text-foreground">{periodPurchases.length}</span> transacciones ·{" "}
+            <span className="font-semibold text-foreground">{newConsumers.length}</span> nuevos registros ·{" "}
+            <span className="font-semibold text-foreground">{periodAppts.length}</span> citas del período seleccionado.
+          </p>
           {/* KPIs */}
           <section className="grid grid-cols-2 lg:grid-cols-6 gap-3">
             <Kpi label="Avance objetivo" value={`${targetPct}%`} sub={formatMoney(sellOut)} accent />
