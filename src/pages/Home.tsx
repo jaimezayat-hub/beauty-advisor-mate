@@ -1,4 +1,7 @@
 import { useApp, useCurrentUser } from "@/store/useApp";
+import { useConsumersList } from "@/lib/db/useConsumers";
+import { useAppointmentsList } from "@/lib/db/useAppointments";
+import { usePurchasesList } from "@/lib/db/usePurchases";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Calendar, Cake, RefreshCw, AlertTriangle, Sparkles, ArrowUpRight } from "lucide-react";
@@ -10,16 +13,31 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const user = useCurrentUser()!;
-  const { consumers, appointments, purchases, recommendations } = useApp();
+  const { consumers: seedConsumers, appointments: seedAppts, purchases: seedPurchases, recommendations, isRealSession } = useApp();
 
-  const myConsumers = consumers.filter((c) => c.assignedBaId === user.id);
+  // Real DB queries (RLS already filters by user scope)
+  const dbConsumers = useConsumersList({}, isRealSession);
+  const dbAppts = useAppointmentsList({}, isRealSession);
+  const dbPurchases = usePurchasesList({}, isRealSession);
+
+  const consumers = isRealSession ? (dbConsumers.data ?? []) : seedConsumers;
+  const appointments = isRealSession ? (dbAppts.data ?? []) : seedAppts;
+  const purchases = isRealSession ? (dbPurchases.data ?? []) : seedPurchases;
+
+  // For BAs "myConsumers" = own assigned. For managers/supervisors with no explicit assignment,
+  // we treat their visible cartera as the team's pool.
+  const myConsumers =
+    user.role === "ba"
+      ? consumers.filter((c) => c.assignedBaId === user.id)
+      : consumers;
 
   const today = new Date();
   const todayKey = today.toDateString();
   const todaysAppts = appointments
-    .filter(
-      (a) => a.baId === user.id && new Date(a.date).toDateString() === todayKey,
-    )
+    .filter((a) => {
+      const sameDay = new Date(a.date).toDateString() === todayKey;
+      return user.role === "ba" ? sameDay && a.baId === user.id : sameDay;
+    })
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const birthdaySoon = myConsumers
@@ -41,7 +59,9 @@ export default function Home() {
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 7);
   const myWeekPurchases = purchases.filter(
-    (p) => p.baId === user.id && new Date(p.date) >= weekStart,
+    (p) =>
+      new Date(p.date) >= weekStart &&
+      (user.role === "ba" ? p.baId === user.id : true),
   );
   const myWeekRecs = recommendations.filter(
     (r) => r.baId === user.id && new Date(r.date) >= weekStart,

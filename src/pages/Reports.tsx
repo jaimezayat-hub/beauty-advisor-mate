@@ -15,6 +15,10 @@ import {
   YAxis,
 } from "recharts";
 import { useApp, useCurrentUser } from "@/store/useApp";
+import { useConsumersList } from "@/lib/db/useConsumers";
+import { usePurchasesList } from "@/lib/db/usePurchases";
+import { useAppointmentsList } from "@/lib/db/useAppointments";
+import { useFollowUpsList } from "@/lib/db/useFollowUps";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +50,42 @@ function rangeStart(r: RangeKey): Date {
 
 export default function Reports() {
   const user = useCurrentUser()!;
-  const { consumers, purchases, users, appointments, followUps, recommendations } = useApp();
+  const {
+    consumers: seedConsumers,
+    purchases: seedPurchases,
+    users,
+    appointments: seedAppointments,
+    followUps: seedFollowUps,
+    recommendations,
+    isRealSession,
+  } = useApp();
+
+  const dbConsumers = useConsumersList({}, isRealSession);
+  const dbPurchases = usePurchasesList({}, isRealSession);
+  const dbAppts = useAppointmentsList({}, isRealSession);
+  const dbFollowUps = useFollowUpsList(isRealSession);
+
+  const consumers = isRealSession ? (dbConsumers.data ?? []) : seedConsumers;
+  const purchases = isRealSession ? (dbPurchases.data ?? []) : seedPurchases;
+  const appointments = isRealSession ? (dbAppts.data ?? []) : seedAppointments;
+  const followUps = isRealSession ? (dbFollowUps.data ?? []) : seedFollowUps;
+
+  // In real sessions, build the BA roster from the consumers we actually see
+  const realBas = useMemo(() => {
+    if (!isRealSession) return [] as { id: string; name: string; brand: string; storeId: string }[];
+    const byId = new Map<string, { id: string; name: string; brand: string; storeId: string }>();
+    for (const c of consumers) {
+      if (!c.assignedBaId || byId.has(c.assignedBaId)) continue;
+      byId.set(c.assignedBaId, {
+        id: c.assignedBaId,
+        name: `BA · ${c.brand === "ysl" ? "YSL" : "Lancôme"} · ${c.storeId.split("-").pop() ?? ""}`.trim(),
+        brand: c.brand,
+        storeId: c.storeId,
+      });
+    }
+    return Array.from(byId.values());
+  }, [isRealSession, consumers]);
+
   const [range, setRange] = useState<RangeKey>("mes");
   const [tab, setTab] = useState<"dashboard" | "consumidoras" | "ba" | "adopcion" | "retencion">("dashboard");
 
@@ -63,7 +102,12 @@ export default function Reports() {
   const periodFollow = inRange(followUps);
 
   // Sales by BA
-  const bas = users.filter((u) => u.role === "ba");
+  const seedBas = users.filter((u) => u.role === "ba");
+  const bas = isRealSession
+    ? realBas.map((b) => ({ id: b.id, name: b.name, brand: b.brand, storeId: b.storeId, role: "ba" as const }))
+    : seedBas;
+  const lookupBa = (id: string | undefined) =>
+    bas.find((b) => b.id === id) ?? users.find((u) => u.id === id);
   const salesByBa = bas.map((b) => ({
     name: b.name.split(" ")[0],
     ventas: periodPurchases.filter((p) => p.baId === b.id).reduce((s, p) => s + p.total, 0),
@@ -170,7 +214,7 @@ export default function Reports() {
 
   const exportConsumers = () => {
     const rows = consumers.map((c) => {
-      const ba = users.find((u) => u.id === c.assignedBaId);
+      const ba = lookupBa(c.assignedBaId);
       return {
         Nombre: c.firstName,
         Apellido: c.lastName,
@@ -406,7 +450,7 @@ export default function Reports() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {consumers.map((c) => {
-                    const ba = users.find((u) => u.id === c.assignedBaId);
+                    const ba = lookupBa(c.assignedBaId);
                     return (
                       <tr key={c.id} className="hover:bg-muted/30">
                         <td className="px-4 py-3">

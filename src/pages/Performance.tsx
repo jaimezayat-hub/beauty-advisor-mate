@@ -112,7 +112,11 @@ export default function Performance() {
         </div>
       </div>
 
-      {isBa && current ? <BaPanel profile={current} user={user} period={period} apptStats={apptStats} /> : <TeamPanel profiles={profiles} users={users} />}
+      {isBa && current ? (
+        <BaPanel profile={current} user={user} period={period} apptStats={apptStats} liveKpis={liveKpis} />
+      ) : (
+        <TeamPanel profiles={profiles} users={users} />
+      )}
       {!isBa && <TeamPanel profiles={profiles} users={users} compact />}
       {isDirector && <SuccessMetrics profiles={profiles} />}
       {!isBa && <ApptHealthCard stats={apptStats} />}
@@ -120,17 +124,20 @@ export default function Performance() {
   );
 }
 
-function BaPanel({ profile, user, period, apptStats }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number } }) {
+function BaPanel({ profile, user, period, apptStats, liveKpis }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number } }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
-  const monthSales = profile.history.slice(-4).reduce((s, w) => s + w.sales, 0);
+  const seedMonthSales = profile.history.slice(-4).reduce((s, w) => s + w.sales, 0);
   const previousSales = profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0);
-  const transactions = Math.round(monthSales / 3450);
-  const averageTicket = monthSales / Math.max(transactions, 1);
+  const monthSales = liveKpis ? liveKpis.sales : seedMonthSales;
+  const transactions = liveKpis ? liveKpis.transactions : Math.round(seedMonthSales / 3450);
+  const averageTicket = liveKpis ? liveKpis.avgTicket : seedMonthSales / Math.max(transactions, 1);
   const recs = profile.history.slice(-4).reduce((s, w) => s + w.recommendations, 0);
   const converted = profile.history.slice(-4).reduce((s, w) => s + w.convertedRecommendations, 0);
-  const newConsumers = profile.history.slice(-4).reduce((s, w) => s + w.newConsumers, 0);
+  const newConsumers = liveKpis ? liveKpis.newConsumers : profile.history.slice(-4).reduce((s, w) => s + w.newConsumers, 0);
   const targetPct = Math.round((monthSales / profile.monthlyTarget) * 100);
-  const growth = Math.round(((monthSales - previousSales) / previousSales) * 100);
+  const growth = previousSales > 0 ? Math.round(((monthSales - previousSales) / previousSales) * 100) : 0;
+  const fupsCompleted = liveKpis ? liveKpis.followupsCompleted : profile.followUpsCompleted;
+  const fupsPending = liveKpis ? liveKpis.followupsPending : profile.followUpsPending;
 
   const cards: KpiCardProps[] = [
     { focus: "ventas", icon: <DollarSign />, label: "Total vendido este mes", value: formatMoney(monthSales), hint: `Objetivo ${formatMoney(profile.monthlyTarget)}`, progress: targetPct, delta: `${growth >= 0 ? "+" : ""}${growth}% vs 4 sem. previas` },
@@ -138,7 +145,7 @@ function BaPanel({ profile, user, period, apptStats }: { profile: BaKpiProfile; 
     { focus: "ventas", icon: <TrendingUp />, label: "Ticket promedio", value: formatMoney(averageTicket), hint: "Por transacción", delta: "mix premium activo" },
     { focus: "ventas", icon: <RefreshCw />, label: "Conversión reco. → venta", value: `${Math.round((converted / recs) * 100)}%`, hint: `${converted} de ${recs} recomendaciones`, progress: (converted / recs) * 100 },
     { focus: "clienteling", icon: <UserPlus />, label: "Nuevas consumidoras", value: `${newConsumers}/${profile.newConsumerTarget}`, hint: "Registros vs objetivo", progress: (newConsumers / profile.newConsumerTarget) * 100 },
-    { focus: "clienteling", icon: <FileText />, label: "Seguimientos", value: `${profile.followUpsCompleted}/${profile.followUpsCompleted + profile.followUpsPending}`, hint: "Completados vs pendientes", donut: [profile.followUpsCompleted, profile.followUpsPending] },
+    { focus: "clienteling", icon: <FileText />, label: "Seguimientos", value: `${fupsCompleted}/${fupsCompleted + fupsPending}`, hint: "Completados vs pendientes", donut: [fupsCompleted, fupsPending] },
     { focus: "clienteling", icon: <CalendarDays />, label: "Cumpleaños atendidos", value: `${profile.birthdaysContacted}/${profile.birthdaysTotal}`, hint: "Alertas del mes", progress: (profile.birthdaysContacted / profile.birthdaysTotal) * 100 },
     { focus: "clienteling", icon: <RefreshCw />, label: "Reposiciones activadas", value: profile.replenishmentsActivated.toString(), hint: "Contactos en fecha", delta: "oportunidad de recompra" },
     { focus: "adopcion", icon: <Smartphone />, label: "Días activa", value: `${profile.activeDays}/${profile.workDays}`, hint: "Días laborales del mes", progress: (profile.activeDays / profile.workDays) * 100 },
