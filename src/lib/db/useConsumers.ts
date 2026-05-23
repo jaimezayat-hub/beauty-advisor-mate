@@ -1,7 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { mapConsumer, consumerToInserts } from "./mappers";
-import type { Consumer, Segment } from "@/lib/types";
+import {
+  mapConsumer,
+  consumerToInserts,
+  mapPurchase,
+  mapAppointment,
+  mapFollowUp,
+  mapSampleDelivery,
+} from "./mappers";
+import type {
+  Consumer,
+  Segment,
+  Purchase,
+  Appointment,
+  FollowUp,
+  Sample,
+  Message,
+} from "@/lib/types";
 
 export const consumersKey = (filters?: unknown) =>
   ["consumers", filters ?? {}] as const;
