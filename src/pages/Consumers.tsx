@@ -73,11 +73,13 @@ export default function Consumers() {
         title="Consumidoras"
         description="Gestiona la relación 1:1 con cada clienta de tu counter."
         actions={
-          <Button asChild size="lg">
-            <Link to="/consumidoras/nueva">
-              <Plus className="size-4 mr-1" /> Nueva consumidora
-            </Link>
-          </Button>
+          user.role === "ba" ? (
+            <Button asChild size="lg">
+              <Link to="/consumidoras/nueva">
+                <Plus className="size-4 mr-1" /> Nueva consumidora
+              </Link>
+            </Button>
+          ) : null
         }
       />
 
@@ -135,9 +137,11 @@ export default function Consumers() {
         {list.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground">
             <p>No hay consumidoras con esos criterios.</p>
-            <Button asChild variant="link" className="mt-2">
-              <Link to="/consumidoras/nueva">Registrar nueva consumidora</Link>
-            </Button>
+            {user.role === "ba" && (
+              <Button asChild variant="link" className="mt-2">
+                <Link to="/consumidoras/nueva">Registrar nueva consumidora</Link>
+              </Button>
+            )}
           </div>
         ) : (
           <ul className="divide-y divide-border">
