@@ -48,9 +48,13 @@ import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
-import { usePerformanceKpis } from "@/lib/db/usePerformance";
+import { usePerformanceKpis, type KpiPeriod } from "@/lib/db/usePerformance";
 
-const PERIODS = ["Esta semana", "Este mes", "Últimos 3 meses", "Personalizado"];
+const PERIODS: { label: string; key: KpiPeriod }[] = [
+  { label: "Esta semana", key: "semana" },
+  { label: "Este mes", key: "mes" },
+  { label: "Últimos 3 meses", key: "trimestre" },
+];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--gold))"];
 const SOFT_GRID = "hsl(var(--border))";
 
@@ -59,8 +63,9 @@ type KpiFocus = "ventas" | "clienteling" | "adopcion";
 export default function Performance() {
   const user = useCurrentUser()!;
   const { users, baKpis, stores, appointments, isRealSession } = useApp();
-  const [period, setPeriod] = useState("Este mes");
-  const { data: liveKpis } = usePerformanceKpis(isRealSession);
+  const [period, setPeriod] = useState<KpiPeriod>("mes");
+  const { data: liveKpis } = usePerformanceKpis(isRealSession, period);
+  const periodLabel = PERIODS.find((p) => p.key === period)?.label ?? "Este mes";
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
   const scope = getScope(user);
@@ -105,15 +110,15 @@ export default function Performance() {
         />
         <div className="flex flex-wrap gap-2">
           {PERIODS.map((p) => (
-            <Button key={p} variant={period === p ? "default" : "outline"} size="sm" onClick={() => setPeriod(p)}>
-              {p}
+            <Button key={p.key} variant={period === p.key ? "default" : "outline"} size="sm" onClick={() => setPeriod(p.key)}>
+              {p.label}
             </Button>
           ))}
         </div>
       </div>
 
       {isBa && current ? (
-        <BaPanel profile={current} user={user} period={period} apptStats={apptStats} liveKpis={liveKpis} />
+        <BaPanel profile={current} user={user} period={periodLabel} apptStats={apptStats} liveKpis={liveKpis} />
       ) : (
         <TeamPanel profiles={profiles} users={users} />
       )}
