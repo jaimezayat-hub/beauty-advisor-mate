@@ -163,3 +163,86 @@ export function useCreateConsumer() {
     },
   });
 }
+
+// ============================================================
+// Timeline (purchases, appointments, follow-ups, samples, messages)
+// ============================================================
+
+export interface ConsumerTimeline {
+  purchases: Purchase[];
+  appointments: Appointment[];
+  followUps: FollowUp[];
+  samples: Sample[];
+  messages: Message[];
+  lastTransactionAt?: string;
+}
+
+/** Trae el timeline real de una consumidora desde Supabase. */
+export function useConsumerTimeline(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["consumer-timeline", id ?? "none"],
+    enabled: !!id && enabled,
+    queryFn: async (): Promise<ConsumerTimeline> => {
+      if (!id) {
+        return { purchases: [], appointments: [], followUps: [], samples: [], messages: [] };
+      }
+      const [pur, appts, fups, samps, wa, sampleDefs] = await Promise.all([
+        supabase
+          .from("purchases")
+          .select("*, purchase_items(*)")
+          .eq("consumer_id", id)
+          .is("deleted_at", null)
+          .order("purchased_at", { ascending: false }),
+        supabase
+          .from("appointments")
+          .select("*")
+          .eq("consumer_id", id)
+          .order("scheduled_at", { ascending: false }),
+        supabase
+          .from("follow_ups")
+          .select("*")
+          .eq("consumer_id", id)
+          .order("due_at", { ascending: false }),
+        supabase
+          .from("sample_deliveries")
+          .select("*")
+          .eq("consumer_id", id)
+          .order("delivered_at", { ascending: false }),
+        supabase
+          .from("whatsapp_messages")
+          .select("*, whatsapp_templates(code)")
+          .eq("consumer_id", id)
+          .order("sent_at", { ascending: false }),
+        supabase.from("samples").select("id,name,sku"),
+      ]);
+
+      const sampleMap = new Map(
+        (sampleDefs.data ?? []).map((s) => [s.id, { name: s.name, sku: s.sku }]),
+      );
+
+      const purchases = (pur.data ?? []).map((p: any) =>
+        mapPurchase(p, p.purchase_items ?? []),
+      );
+      const lastTransactionAt = purchases[0]?.date;
+
+      return {
+        purchases,
+        appointments: (appts.data ?? []).map(mapAppointment),
+        followUps: (fups.data ?? []).map(mapFollowUp),
+        samples: (samps.data ?? []).map((d) =>
+          mapSampleDelivery(d, sampleMap.get(d.sample_id)),
+        ),
+        messages: (wa.data ?? []).map((m: any) => ({
+          id: m.id,
+          consumerId: m.consumer_id,
+          baId: m.sent_by ?? "",
+          date: m.sent_at,
+          templateType: m.whatsapp_templates?.code ?? "WhatsApp",
+          content: m.rendered_body,
+          channel: "WhatsApp" as const,
+        })),
+        lastTransactionAt,
+      };
+    },
+  });
+}
