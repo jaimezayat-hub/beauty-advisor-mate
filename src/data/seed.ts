@@ -206,6 +206,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Color saturado, acabado satinado, confort 8h.",
     benefits: ["Hidratación", "Color intenso"],
     imageHue: 354,
+    imageUrl: "https://www.yslbeauty.fr/dw/image/v2/AAQP_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwc9b658e2/images/PACKSHOTS/MAKEUP/LIPS/WW-51083YSL_new_rouge_pur_couture/3614273945165_new-rouge-pur-couture_main.png",
     inStock: true,
   },
   {
@@ -217,6 +218,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Base luminosa con tecnología radiance.",
     benefits: ["Luminosidad", "Cobertura media"],
     imageHue: 35,
+    imageUrl: "https://www.yslbeautyus.com/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwd41befb2/images/WW-50960YSL/shade_finder_alt_1.jpg",
     inStock: true,
   },
   {
@@ -228,6 +230,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Lavanda y azahar — la libertad como firma.",
     benefits: ["Floral aromático"],
     imageHue: 46,
+    imageUrl: "https://www.yslbeauty.com.au/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dw0fe2532e/images/fragrance/WW-50424YSL/3614272648425_LIBRE_EAU_DE_PARFUM_90ML.png",
     inStock: true,
   },
   {
@@ -239,6 +242,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Madera y bergamota — moderno y magnético.",
     benefits: ["Amaderado fresco"],
     imageHue: 200,
+    imageUrl: "https://www.yslbeauty.ca/dw/image/v2/AATL_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwd143bc8c/images/pdp/Fragrances/WW-51213YSL/ysl_dmi_fram_myslf_le-parfum_packshot_threequarter_60ml_3000x3000px_3614274114652_rgb.jpg",
     inStock: true,
   },
   {
@@ -250,6 +254,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Sérum nocturno con glicólico — piel renovada al despertar.",
     benefits: ["Renovación", "Luminosidad"],
     imageHue: 46,
+    imageUrl: "https://www.yslbeauty.com.sg/dw/image/v2/BFZM_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dw7fb421c2/images/skincare/APAC-100268-YSL/APAC-100268-YSL-3614273983624-30ML-IMAGE1.png",
     inStock: true,
   },
   {
@@ -261,6 +266,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Volumen extremo, negro intenso, larga duración.",
     benefits: ["Volumen extremo"],
     imageHue: 0,
+    imageUrl: "https://www.yslbeauty.fr/dw/image/v2/AAQP_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwe2d1b7e3/images/PACKSHOTS/MAKEUP/EYE_MAKE_UP/MASCARA/WW-51142YSL_LASH_CLASHW_alt1.png",
     inStock: true,
   },
 ];
