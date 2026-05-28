@@ -26,6 +26,7 @@ export function useProductsList(brand: Brand | "all", enabled = true) {
           description: (p.attributes as any)?.description ?? "",
           benefits: ((p.attributes as any)?.benefits ?? []) as string[],
           imageHue: hue,
+          imageUrl: p.image_url ?? undefined,
           inStock: true,
           ingredients: ((p.attributes as any)?.ingredients ?? []) as string[],
           howToUse: (p.attributes as any)?.howToUse,

@@ -188,6 +188,7 @@ export interface Product {
   description: string;
   benefits: string[];
   imageHue: number; // for placeholder gradient
+  imageUrl?: string;
   inStock: boolean;
   /** RF-59 — soporte para BA: ficha técnica, tutoriales y argumentario */
   ingredients?: string[];
