@@ -133,6 +133,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Sérum activador de juventud con bífidus probiótico.",
     benefits: ["Hidratación", "Luminosidad", "Firmeza"],
     imageHue: 343,
+    imageUrl: "https://cdn.idealo.com/folder/Product/205012/2/205012202/s3_produktbild_max/lancome-advanced-genifique-serum-50ml-gift-set-3-pcs.jpg",
     inStock: true,
   },
   {
@@ -144,6 +145,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Triple acción anti-edad con HA, vitamina C y niacinamida.",
     benefits: ["Líneas finas", "Firmeza", "Manchas"],
     imageHue: 350,
+    imageUrl: "https://www.pricerunner.com/product/3241137386/Lancome-Renergie-H.C.F-Triple-Serum-Retinol-50ml-Set.jpg",
     inStock: true,
   },
   {
@@ -155,6 +157,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Base de larga duración 24h, acabado natural.",
     benefits: ["Cobertura completa", "Larga duración"],
     imageHue: 28,
+    imageUrl: "https://static.beautytocare.com/cdn-cgi/image/width=1600,height=1600,f=auto/media/catalog/product/l/a/lancome-teint-idole-ultra-wear-care-glow-foundation-110c-30ml-2.jpg",
     inStock: true,
   },
   {
@@ -166,6 +169,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Iris, jazmín y praliné — la firma de la felicidad.",
     benefits: ["Floral gourmand"],
     imageHue: 330,
+    imageUrl: "https://www.myperfumeshop.co.za/wp-content/uploads/2023/07/eau-de-parfum-lancome-la-vie-est-belle-100ml-d7d.jpg",
     inStock: true,
   },
   {
@@ -177,6 +181,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Bouquet rosa, jazmín y musk blanco.",
     benefits: ["Floral fresco"],
     imageHue: 354,
+    imageUrl: "https://www.beautybuys.com/media/catalog/product/cache/dc3d7d10978a5327c61d68c8734301b2/l/a/lanip75gs-lancome-idole-edp-75ml-roller-ball-case.jpg",
     inStock: true,
   },
   {
@@ -188,6 +193,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Volumen multiplicado x6 sin grumos.",
     benefits: ["Volumen", "Definición"],
     imageHue: 0,
+    imageUrl: "https://www.lancome.co.uk/dw/image/v2/AAQP_PRD/on/demandware.static/-/Sites-lac-master-catalog/default/dw2f0948fa/images/pdp/01225-LAC/01225-LAC-hypnose-drama-mascara-collection-set-main.jpg",
     inStock: true,
   },
   // ----- YSL -----
