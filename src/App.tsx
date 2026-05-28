@@ -36,9 +36,9 @@ const App = () => (
             <Route element={<RouteGuard />}>
             <Route element={<AppShell />}>
               <Route path="/" element={<Home />} />
-              <Route path="/consumidoras" element={<Consumers />} />
-              <Route path="/consumidoras/nueva" element={<NewConsumer />} />
-              <Route path="/consumidoras/:id" element={<ConsumerProfile />} />
+              <Route path="/consumidores" element={<Consumers />} />
+              <Route path="/consumidores/nueva" element={<NewConsumer />} />
+              <Route path="/consumidores/:id" element={<ConsumerProfile />} />
               <Route path="/recomendaciones" element={<Recommendations />} />
               <Route path="/compras" element={<Purchases />} />
               <Route path="/agenda" element={<Agenda />} />

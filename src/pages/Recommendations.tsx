@@ -52,7 +52,7 @@ export default function Recommendations() {
   const [filterCat, setFilterCat] = useState<"all" | "Skincare" | "Makeup" | "Fragancia">("all");
 
   const brand = consumer?.brand ?? user.brand;
-  // En sesión real, traemos las compras reales de la consumidora para alimentar reposición / dedupe.
+  // En sesión real, traemos las compras reales de la consumidor para alimentar reposición / dedupe.
   const consumerTimeline = useConsumerTimeline(consumer?.id, isRealSession && !!consumer);
   const consumerPurchases = isRealSession
     ? consumerTimeline.data?.purchases ?? []
@@ -138,7 +138,7 @@ export default function Recommendations() {
   const isSelected = (sku: string) => selected.some((s) => s.sku === sku);
 
   const save = () => {
-    if (!consumer) return toast.error("Selecciona una consumidora");
+    if (!consumer) return toast.error("Selecciona una consumidor");
     if (selected.length === 0) return toast.error("Agrega al menos un producto");
     const r: Recommendation = {
       id: `r-${Date.now()}`,
@@ -185,7 +185,7 @@ export default function Recommendations() {
         <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6">
           <div>
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground mb-2">
-              Paso 1 · Consumidora
+              Paso 1 · Consumidor
             </p>
             <ConsumerPicker brand={user.brand} value={consumer} onChange={setConsumer} />
             {consumer && (
@@ -343,14 +343,14 @@ export default function Recommendations() {
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notas para la consumidora (opcional)…"
+          placeholder="Notas para la consumidor (opcional)…"
           className="mt-5 min-h-[80px]"
         />
 
         <div className="flex flex-wrap items-center gap-2 mt-5 justify-end">
           {consumer && (
             <Button asChild variant="ghost">
-              <Link to={`/consumidoras/${consumer.id}`}>Ver perfil</Link>
+              <Link to={`/consumidores/${consumer.id}`}>Ver perfil</Link>
             </Button>
           )}
           <Button

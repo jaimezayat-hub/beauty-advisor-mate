@@ -149,7 +149,7 @@ function BaPanel({ profile, user, period, apptStats, liveKpis }: { profile: BaKp
     { focus: "ventas", icon: <FileText />, label: "Transacciones", value: transactions.toString(), hint: "Registradas en app", delta: `${Math.max(0, transactions - 6)} sobre ritmo esperado` },
     { focus: "ventas", icon: <TrendingUp />, label: "Ticket promedio", value: formatMoney(averageTicket), hint: "Por transacción", delta: "mix premium activo" },
     { focus: "ventas", icon: <RefreshCw />, label: "Conversión reco. → venta", value: `${Math.round((converted / recs) * 100)}%`, hint: `${converted} de ${recs} recomendaciones`, progress: (converted / recs) * 100 },
-    { focus: "clienteling", icon: <UserPlus />, label: "Nuevas consumidoras", value: `${newConsumers}/${profile.newConsumerTarget}`, hint: "Registros vs objetivo", progress: (newConsumers / profile.newConsumerTarget) * 100 },
+    { focus: "clienteling", icon: <UserPlus />, label: "Nuevas consumidores", value: `${newConsumers}/${profile.newConsumerTarget}`, hint: "Registros vs objetivo", progress: (newConsumers / profile.newConsumerTarget) * 100 },
     { focus: "clienteling", icon: <FileText />, label: "Seguimientos", value: `${fupsCompleted}/${fupsCompleted + fupsPending}`, hint: "Completados vs pendientes", donut: [fupsCompleted, fupsPending] },
     { focus: "clienteling", icon: <CalendarDays />, label: "Cumpleaños atendidos", value: `${profile.birthdaysContacted}/${profile.birthdaysTotal}`, hint: "Alertas del mes", progress: (profile.birthdaysContacted / profile.birthdaysTotal) * 100 },
     { focus: "clienteling", icon: <RefreshCw />, label: "Reposiciones activadas", value: profile.replenishmentsActivated.toString(), hint: "Contactos en fecha", delta: "oportunidad de recompra" },
@@ -296,7 +296,7 @@ function KpiCard({ icon, label, value, hint, progress, donut, delta, active, onC
 
 function ActionPanel({ profile, focus }: { profile: BaKpiProfile; focus: KpiFocus }) {
   const content = {
-    ventas: ["Impulsar fragancias premium en tickets con skincare.", "Cerrar brecha con 3 tickets de alto valor.", "Priorizar consumidoras VIP con compra >60 días."],
+    ventas: ["Impulsar fragancias premium en tickets con skincare.", "Cerrar brecha con 3 tickets de alto valor.", "Priorizar consumidores VIP con compra >60 días."],
     clienteling: ["Completar seguimientos pendientes antes de las 17:00.", "Activar reposición en clientas de 30–90 días.", "Contactar cumpleaños restantes del mes."],
     adopcion: ["Registrar cada interacción del counter en el momento.", "Convertir citas completadas en recomendaciones guardadas.", "Mantener actividad diaria para sostener adopción >90."],
   }[focus];

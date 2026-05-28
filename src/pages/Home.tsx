@@ -85,7 +85,7 @@ export default function Home() {
         description="Esto es lo que necesitas saber para tu día en el counter."
         actions={
           <Button asChild size="lg">
-            <Link to="/consumidoras/nueva">+ Nueva consumidora</Link>
+            <Link to="/consumidores/nueva">+ Nueva consumidor</Link>
           </Button>
         }
       />
@@ -93,7 +93,7 @@ export default function Home() {
       {/* KPI strip */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          label="Mis consumidoras"
+          label="Mis consumidores"
           value={myConsumers.length}
           delta={`${myWeekNew.length} nuevas esta semana`}
         />
@@ -141,7 +141,7 @@ export default function Home() {
                 return (
                   <li key={a.id}>
                     <Link
-                      to={`/consumidoras/${c.id}`}
+                      to={`/consumidores/${c.id}`}
                       className="flex items-center gap-4 py-3.5 hover:bg-muted/40 -mx-2 px-2 rounded transition"
                     >
                       <div className="text-right shrink-0 w-16">
@@ -204,7 +204,7 @@ export default function Home() {
                 {birthdaySoon.slice(0, 3).map(({ c, days }) => (
                   <li key={c.id}>
                     <Link
-                      to={`/consumidoras/${c.id}`}
+                      to={`/consumidores/${c.id}`}
                       className="flex items-center gap-3 py-1.5 hover:bg-muted/40 -mx-2 px-2 rounded"
                     >
                       <ConsumerAvatar firstName={c.firstName} lastName={c.lastName} size={32} />
@@ -235,7 +235,7 @@ export default function Home() {
             <h2 className="font-display text-2xl mt-1">Acceso rápido</h2>
           </div>
           <Button asChild variant="ghost" size="sm">
-            <Link to="/consumidoras">
+            <Link to="/consumidores">
               Ver todas <ArrowUpRight className="size-3.5 ml-1" />
             </Link>
           </Button>
@@ -249,7 +249,7 @@ export default function Home() {
             .map((c) => (
               <Link
                 key={c.id}
-                to={`/consumidoras/${c.id}`}
+                to={`/consumidores/${c.id}`}
                 className="flex items-center gap-3 rounded-lg border border-border p-3 hover:border-primary/50 hover:shadow-card transition group"
               >
                 <ConsumerAvatar firstName={c.firstName} lastName={c.lastName} size={44} />

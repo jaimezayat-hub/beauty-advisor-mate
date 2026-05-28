@@ -118,7 +118,7 @@ export default function NewConsumer() {
       try {
         const newId = await createReal.mutateAsync(c);
         toast.success("✓ Registro guardado en la nube. Aviso de privacidad aceptado.");
-        navigate(`/consumidoras/${newId}`);
+        navigate(`/consumidores/${newId}`);
       } catch (e) {
         toast.error("No se pudo guardar", { description: (e as Error).message });
       }
@@ -126,14 +126,14 @@ export default function NewConsumer() {
     }
     addConsumer(c);
     toast.success("✓ Registro completado. El aviso de privacidad ha sido aceptado y firmado.");
-    navigate(`/consumidoras/${c.id}`);
+    navigate(`/consumidores/${c.id}`);
   };
 
   return (
     <div className="p-6 lg:p-12 max-w-5xl mx-auto space-y-8">
       <PageHeader
         eyebrow="Alta de clienta"
-        title="Nueva consumidora"
+        title="Nueva consumidor"
         description="Captura los datos esenciales, su perfil de belleza y el consentimiento de privacidad."
       />
 

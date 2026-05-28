@@ -70,12 +70,12 @@ export function canAccessRoute(role: Role, route: string): boolean {
   // Soporta rutas con sub-paths (ej: /reportes/x)
   const startsWith = (p: string) => route === p || route.startsWith(p + "/");
   // Secciones operativas del BA: Agenda, Seguimiento, Recomendaciones y alta
-  // de consumidoras. Admin/Zona/Gerente no las necesitan.
+  // de consumidores. Admin/Zona/Gerente no las necesitan.
   if (
     startsWith("/recomendaciones") ||
     startsWith("/seguimiento") ||
     startsWith("/agenda") ||
-    route === "/consumidoras/nueva"
+    route === "/consumidores/nueva"
   ) {
     return role === "ba";
   }

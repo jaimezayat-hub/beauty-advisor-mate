@@ -59,14 +59,14 @@ export default function ConsumerProfile() {
   if (isRealSession && detail.isLoading) {
     return <div className="p-12 text-center text-muted-foreground">Cargando…</div>;
   }
-  if (!c) return <Navigate to="/consumidoras" replace />;
-  // RF-50/51 — un BA solo accede a sus consumidoras; gerentes a su tienda; supervisor a su región
+  if (!c) return <Navigate to="/consumidores" replace />;
+  // RF-50/51 — un BA solo accede a sus consumidores; gerentes a su tienda; supervisor a su región
   const scope = getScope(user);
   const baToStoreId = Object.fromEntries(users.map((u) => [u.id, u.storeId]));
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
   // En sesión real RLS ya filtra; en demo aplicamos scope local.
   if (!isRealSession && !inScope(scope, c, { baToStoreId, storeIdToRegion })) {
-    return <Navigate to="/consumidoras" replace />;
+    return <Navigate to="/consumidores" replace />;
   }
 
   const t = isRealSession ? timeline.data : undefined;
@@ -99,8 +99,8 @@ export default function ConsumerProfile() {
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/consumidoras">
-            <ArrowLeft className="size-4 mr-1" /> Consumidoras
+          <Link to="/consumidores">
+            <ArrowLeft className="size-4 mr-1" /> Consumidores
           </Link>
         </Button>
         <div className="flex gap-2">

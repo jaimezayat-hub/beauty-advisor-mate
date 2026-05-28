@@ -11,7 +11,7 @@ export function ConsumerPicker({
   brand,
   value,
   onChange,
-  placeholder = "Buscar consumidora…",
+  placeholder = "Buscar consumidor…",
 }: {
   brand?: "lancome" | "ysl";
   value: Consumer | null;

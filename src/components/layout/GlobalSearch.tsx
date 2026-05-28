@@ -26,14 +26,14 @@ export function GlobalSearch({
       <CommandInput placeholder="Buscar por nombre, correo o teléfono…" />
       <CommandList>
         <CommandEmpty>Sin resultados.</CommandEmpty>
-        <CommandGroup heading="Consumidoras">
+        <CommandGroup heading="Consumidores">
           {consumers.slice(0, 60).map((c) => (
             <CommandItem
               key={c.id}
               value={`${c.firstName} ${c.lastName} ${c.email} ${c.phone}`}
               onSelect={() => {
                 onOpenChange(false);
-                navigate(`/consumidoras/${c.id}`);
+                navigate(`/consumidores/${c.id}`);
               }}
             >
               <div className="flex-1 truncate">
