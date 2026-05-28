@@ -230,7 +230,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Lavanda y azahar — la libertad como firma.",
     benefits: ["Floral aromático"],
     imageHue: 46,
-    imageUrl: "https://www.yslbeauty.com.au/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dw0fe2532e/images/fragrance/WW-50424YSL/3614272648425_LIBRE_EAU_DE_PARFUM_90ML.png",
+    imageUrl: "https://www.yamsm.ae/wp-content/uploads/2022/09/006-YSL-Libre-EDP-B.jpg",
     inStock: true,
   },
   {
