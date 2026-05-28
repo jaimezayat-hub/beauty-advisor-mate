@@ -42,14 +42,29 @@ export function ProductCard({
       <div
         className={cn("relative overflow-hidden", compact ? "h-24" : "h-36")}
         style={{
-          background: `linear-gradient(135deg, hsl(${product.imageHue} 55% 80%), hsl(${product.imageHue} 35% 55%))`,
+          background: product.imageUrl
+            ? "hsl(var(--muted))"
+            : `linear-gradient(135deg, hsl(${product.imageHue} 55% 80%), hsl(${product.imageHue} 35% 55%))`,
         }}
       >
-        <div className="absolute inset-0 flex items-center justify-center text-white/90">
-          <span className="font-display italic text-xl tracking-wide drop-shadow">
-            {product.brand === "ysl" ? "YSL" : "Lancôme"}
-          </span>
-        </div>
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+            className="absolute inset-0 w-full h-full object-contain p-2 mix-blend-multiply"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-white/90">
+            <span className="font-display italic text-xl tracking-wide drop-shadow">
+              {product.brand === "ysl" ? "YSL" : "Lancôme"}
+            </span>
+          </div>
+        )}
         {badge && (
           <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] uppercase tracking-widest bg-background/90 text-foreground px-2 py-0.5 rounded-full">
             <Sparkle className="size-2.5" /> {badge}
@@ -113,12 +128,21 @@ function ProductInfoDialog({
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">{product.name}</DialogTitle>
         </DialogHeader>
-        <div
-          className="h-32 rounded-lg"
-          style={{
-            background: `linear-gradient(135deg, hsl(${product.imageHue} 55% 80%), hsl(${product.imageHue} 35% 55%))`,
-          }}
-        />
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            referrerPolicy="no-referrer"
+            className="h-40 w-full object-contain rounded-lg bg-muted p-2"
+          />
+        ) : (
+          <div
+            className="h-32 rounded-lg"
+            style={{
+              background: `linear-gradient(135deg, hsl(${product.imageHue} 55% 80%), hsl(${product.imageHue} 35% 55%))`,
+            }}
+          />
+        )}
         <div className="grid grid-cols-3 gap-3 text-xs">
           <div className="rounded-md border border-border p-3">
             <p className="uppercase tracking-widest text-muted-foreground text-[10px]">SKU</p>
