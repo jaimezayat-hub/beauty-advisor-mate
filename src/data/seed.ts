@@ -133,6 +133,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Sérum activador de juventud con bífidus probiótico.",
     benefits: ["Hidratación", "Luminosidad", "Firmeza"],
     imageHue: 343,
+    imageUrl: "https://cdn.idealo.com/folder/Product/205012/2/205012202/s3_produktbild_max/lancome-advanced-genifique-serum-50ml-gift-set-3-pcs.jpg",
     inStock: true,
   },
   {
@@ -144,6 +145,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Triple acción anti-edad con HA, vitamina C y niacinamida.",
     benefits: ["Líneas finas", "Firmeza", "Manchas"],
     imageHue: 350,
+    imageUrl: "https://www.pricerunner.com/product/3241137386/Lancome-Renergie-H.C.F-Triple-Serum-Retinol-50ml-Set.jpg",
     inStock: true,
   },
   {
@@ -155,6 +157,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Base de larga duración 24h, acabado natural.",
     benefits: ["Cobertura completa", "Larga duración"],
     imageHue: 28,
+    imageUrl: "https://static.beautytocare.com/cdn-cgi/image/width=1600,height=1600,f=auto/media/catalog/product/l/a/lancome-teint-idole-ultra-wear-care-glow-foundation-110c-30ml-2.jpg",
     inStock: true,
   },
   {
@@ -166,6 +169,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Iris, jazmín y praliné — la firma de la felicidad.",
     benefits: ["Floral gourmand"],
     imageHue: 330,
+    imageUrl: "https://www.myperfumeshop.co.za/wp-content/uploads/2023/07/eau-de-parfum-lancome-la-vie-est-belle-100ml-d7d.jpg",
     inStock: true,
   },
   {
@@ -177,6 +181,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Bouquet rosa, jazmín y musk blanco.",
     benefits: ["Floral fresco"],
     imageHue: 354,
+    imageUrl: "https://www.beautybuys.com/media/catalog/product/cache/dc3d7d10978a5327c61d68c8734301b2/l/a/lanip75gs-lancome-idole-edp-75ml-roller-ball-case.jpg",
     inStock: true,
   },
   {
@@ -188,6 +193,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Volumen multiplicado x6 sin grumos.",
     benefits: ["Volumen", "Definición"],
     imageHue: 0,
+    imageUrl: "https://www.lancome.co.uk/dw/image/v2/AAQP_PRD/on/demandware.static/-/Sites-lac-master-catalog/default/dw2f0948fa/images/pdp/01225-LAC/01225-LAC-hypnose-drama-mascara-collection-set-main.jpg",
     inStock: true,
   },
   // ----- YSL -----
@@ -200,6 +206,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Color saturado, acabado satinado, confort 8h.",
     benefits: ["Hidratación", "Color intenso"],
     imageHue: 354,
+    imageUrl: "https://www.yslbeauty.fr/dw/image/v2/AAQP_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwc9b658e2/images/PACKSHOTS/MAKEUP/LIPS/WW-51083YSL_new_rouge_pur_couture/3614273945165_new-rouge-pur-couture_main.png",
     inStock: true,
   },
   {
@@ -211,6 +218,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Base luminosa con tecnología radiance.",
     benefits: ["Luminosidad", "Cobertura media"],
     imageHue: 35,
+    imageUrl: "https://www.yslbeautyus.com/dw/image/v2/AANG_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwd41befb2/images/WW-50960YSL/shade_finder_alt_1.jpg",
     inStock: true,
   },
   {
@@ -222,6 +230,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Lavanda y azahar — la libertad como firma.",
     benefits: ["Floral aromático"],
     imageHue: 46,
+    imageUrl: "https://www.yamsm.ae/wp-content/uploads/2022/09/006-YSL-Libre-EDP-B.jpg",
     inStock: true,
   },
   {
@@ -233,6 +242,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Madera y bergamota — moderno y magnético.",
     benefits: ["Amaderado fresco"],
     imageHue: 200,
+    imageUrl: "https://www.yslbeauty.ca/dw/image/v2/AATL_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwd143bc8c/images/pdp/Fragrances/WW-51213YSL/ysl_dmi_fram_myslf_le-parfum_packshot_threequarter_60ml_3000x3000px_3614274114652_rgb.jpg",
     inStock: true,
   },
   {
@@ -244,6 +254,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Sérum nocturno con glicólico — piel renovada al despertar.",
     benefits: ["Renovación", "Luminosidad"],
     imageHue: 46,
+    imageUrl: "https://www.yslbeauty.com.sg/dw/image/v2/BFZM_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dw7fb421c2/images/skincare/APAC-100268-YSL/APAC-100268-YSL-3614273983624-30ML-IMAGE1.png",
     inStock: true,
   },
   {
@@ -255,6 +266,7 @@ export const SEED_PRODUCTS: Product[] = [
     description: "Volumen extremo, negro intenso, larga duración.",
     benefits: ["Volumen extremo"],
     imageHue: 0,
+    imageUrl: "https://www.yslbeauty.fr/dw/image/v2/AAQP_PRD/on/demandware.static/-/Sites-ysl-master-catalog/default/dwe2d1b7e3/images/PACKSHOTS/MAKEUP/EYE_MAKE_UP/MASCARA/WW-51142YSL_LASH_CLASHW_alt1.png",
     inStock: true,
   },
 ];
