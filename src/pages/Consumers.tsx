@@ -70,13 +70,13 @@ export default function Consumers() {
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8">
       <PageHeader
         eyebrow="Cartera de clientas"
-        title="Consumidoras"
+        title="Consumidores"
         description="Gestiona la relación 1:1 con cada clienta de tu counter."
         actions={
           user.role === "ba" ? (
             <Button asChild size="lg">
-              <Link to="/consumidoras/nueva">
-                <Plus className="size-4 mr-1" /> Nueva consumidora
+              <Link to="/consumidores/nueva">
+                <Plus className="size-4 mr-1" /> Nueva consumidor
               </Link>
             </Button>
           ) : null
@@ -136,10 +136,10 @@ export default function Consumers() {
       <Card className="overflow-hidden shadow-card">
         {list.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground">
-            <p>No hay consumidoras con esos criterios.</p>
+            <p>No hay consumidores con esos criterios.</p>
             {user.role === "ba" && (
               <Button asChild variant="link" className="mt-2">
-                <Link to="/consumidoras/nueva">Registrar nueva consumidora</Link>
+                <Link to="/consumidores/nueva">Registrar nueva consumidor</Link>
               </Button>
             )}
           </div>
@@ -150,7 +150,7 @@ export default function Consumers() {
               return (
                 <li key={c.id}>
                   <Link
-                    to={`/consumidoras/${c.id}`}
+                    to={`/consumidores/${c.id}`}
                     className="flex items-center gap-4 p-4 hover:bg-muted/40 transition"
                   >
                     <ConsumerAvatar firstName={c.firstName} lastName={c.lastName} size={48} />
@@ -182,7 +182,7 @@ export default function Consumers() {
       </Card>
 
       <p className="text-xs text-muted-foreground text-center">
-        Mostrando {list.length} consumidora{list.length === 1 ? "" : "s"}
+        Mostrando {list.length} consumidor{list.length === 1 ? "" : "s"}
       </p>
     </div>
   );

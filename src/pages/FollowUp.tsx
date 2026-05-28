@@ -226,7 +226,7 @@ export default function FollowUpPage() {
                     <ConsumerAvatar firstName={c.firstName} lastName={c.lastName} size={40} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm">
-                        <Link to={`/consumidoras/${c.id}`} className="font-medium hover:underline">
+                        <Link to={`/consumidores/${c.id}`} className="font-medium hover:underline">
                           {fullName(c.firstName, c.lastName)}
                         </Link>{" "}
                         <span className="text-muted-foreground">·</span>{" "}
@@ -339,7 +339,7 @@ function AlertColumn({
             <div key={consumer.id} className="flex items-center gap-2 py-2 border-b border-border/50 last:border-0">
               <ConsumerAvatar firstName={consumer.firstName} lastName={consumer.lastName} size={32} />
               <div className="flex-1 min-w-0">
-                <Link to={`/consumidoras/${consumer.id}`} className="text-sm font-medium hover:underline truncate block">
+                <Link to={`/consumidores/${consumer.id}`} className="text-sm font-medium hover:underline truncate block">
                   {fullName(consumer.firstName, consumer.lastName)}
                 </Link>
                 <p className="text-[11px] text-muted-foreground">{sub}</p>
@@ -375,7 +375,7 @@ function NewFollowUpDialog({
   const [status, setStatus] = useState<NonNullable<FollowUp["status"]>>("completado");
 
   const submit = () => {
-    if (!consumer) return toast.error("Selecciona una consumidora");
+    if (!consumer) return toast.error("Selecciona una consumidor");
     onSave({
       id: `f-${Date.now()}`,
       consumerId: consumer.id,
@@ -405,7 +405,7 @@ function NewFollowUpDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label className="mb-2 block">Consumidora</Label>
+            <Label className="mb-2 block">Consumidor</Label>
             <ConsumerPicker brand={user.brand} value={consumer} onChange={setConsumer} />
           </div>
           <div>
@@ -515,7 +515,7 @@ function TemplateDialog({
   }, [state.def, consumer, user, store, productName, eventName, newProductName, newProductBenefit]);
 
   const copyAndLog = async () => {
-    if (!consumer) return toast.error("Selecciona una consumidora");
+    if (!consumer) return toast.error("Selecciona una consumidor");
     await navigator.clipboard.writeText(content);
     onSent(consumer, content, state.def.title);
     toast.success("Copiado al portapapeles", {
@@ -532,7 +532,7 @@ function TemplateDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label className="mb-2 block">Consumidora</Label>
+            <Label className="mb-2 block">Consumidor</Label>
             <ConsumerPicker brand={user.brand} value={consumer} onChange={setConsumer} />
           </div>
 
@@ -562,7 +562,7 @@ function TemplateDialog({
           )}
 
           <div className="rounded-md border border-border bg-muted/30 p-4 text-sm whitespace-pre-line max-h-64 overflow-y-auto leading-relaxed">
-            {content || "Selecciona una consumidora para previsualizar."}
+            {content || "Selecciona una consumidor para previsualizar."}
           </div>
 
           <div className="flex justify-end gap-2">

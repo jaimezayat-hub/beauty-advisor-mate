@@ -144,7 +144,7 @@ export default function Settings() {
         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Datos demo</p>
         <h2 className="font-display text-2xl mt-1 mb-3">Restablecer</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Restaura las 20 consumidoras y compras simuladas a su estado inicial. Útil antes de una demo.
+          Restaura las 20 consumidores y compras simuladas a su estado inicial. Útil antes de una demo.
         </p>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => { resetSeed(); toast.success("Datos demo restaurados"); }}>

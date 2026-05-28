@@ -87,7 +87,7 @@ export default function Reports() {
   }, [isRealSession, consumers]);
 
   const [range, setRange] = useState<RangeKey>("mes");
-  const [tab, setTab] = useState<"dashboard" | "consumidoras" | "ba" | "adopcion" | "retencion">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "consumidores" | "ba" | "adopcion" | "retencion">("dashboard");
 
   const start = rangeStart(range);
   const inRange = <T extends { date: string }>(items: T[]) =>
@@ -229,7 +229,7 @@ export default function Reports() {
         ÚltimaTransacción: formatDate(c.lastTransactionAt),
       };
     });
-    downloadCSV(`consumidoras_${new Date().toISOString().slice(0, 10)}`, rows);
+    downloadCSV(`consumidores_${new Date().toISOString().slice(0, 10)}`, rows);
     toast.success("Lista exportada");
   };
 
@@ -279,7 +279,7 @@ export default function Reports() {
           ["dashboard", "Dashboard"],
           ["adopcion", "Adopción"],
           ["retencion", "Retención"],
-          ["consumidoras", "Lista Consumidoras"],
+          ["consumidores", "Lista Consumidores"],
           ["ba", "Desempeño BA"],
         ] as const).map(([k, l]) => (
           <button
@@ -434,7 +434,7 @@ export default function Reports() {
         </div>
       )}
 
-      {tab === "consumidoras" && (
+      {tab === "consumidores" && (
         <div className="space-y-4 animate-fade-in">
           <div className="flex justify-end">
             <Button onClick={exportConsumers}><Download className="size-4 mr-1.5" /> Exportar Excel/CSV</Button>
@@ -444,7 +444,7 @@ export default function Reports() {
               <table className="w-full text-sm">
                 <thead className="text-xs uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/30">
                   <tr>
-                    <th className="text-left px-4 py-3 font-medium">Consumidora</th>
+                    <th className="text-left px-4 py-3 font-medium">Consumidor</th>
                     <th className="text-left px-4 py-3 font-medium">Segmento</th>
                     <th className="text-left px-4 py-3 font-medium">Marca</th>
                     <th className="text-left px-4 py-3 font-medium">BA</th>
@@ -459,7 +459,7 @@ export default function Reports() {
                     return (
                       <tr key={c.id} className="hover:bg-muted/30">
                         <td className="px-4 py-3">
-                          <Link to={`/consumidoras/${c.id}`} className="hover:underline font-medium">
+                          <Link to={`/consumidores/${c.id}`} className="hover:underline font-medium">
                             {fullName(c.firstName, c.lastName)}
                           </Link>
                           <p className="text-xs text-muted-foreground">{c.phone}</p>
@@ -593,7 +593,7 @@ export default function Reports() {
                   {reactivationList.map(({ c, days, bucket }) => (
                     <li key={c.id} className="p-3 flex items-center gap-3">
                       <div className="flex-1 min-w-0">
-                        <Link to={`/consumidoras/${c.id}`} className="text-sm font-medium hover:underline">
+                        <Link to={`/consumidores/${c.id}`} className="text-sm font-medium hover:underline">
                           {fullName(c.firstName, c.lastName)}
                         </Link>
                         <p className="text-[11px] text-muted-foreground">

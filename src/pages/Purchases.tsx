@@ -81,7 +81,7 @@ export default function Purchases() {
   };
 
   const save = async () => {
-    if (!consumer) return toast.error("Selecciona una consumidora");
+    if (!consumer) return toast.error("Selecciona una consumidor");
     if (lines.length === 0) return toast.error("Agrega al menos un producto");
     const p: Purchase = {
       id: `p-${Date.now()}`,
@@ -134,7 +134,7 @@ export default function Purchases() {
         Fecha: formatDate(p.date),
         Ticket: p.ticketNumber ?? "",
         Marca: p.brand === "ysl" ? "YSL" : "Lancôme",
-        Consumidora: c ? fullName(c.firstName, c.lastName) : "",
+        Consumidor: c ? fullName(c.firstName, c.lastName) : "",
         Producto: l.name,
         SKU: l.sku,
         Cantidad: l.qty,
@@ -165,7 +165,7 @@ export default function Purchases() {
         <Card className="p-6 lg:p-8 shadow-card space-y-6">
           <div>
             <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground mb-2">
-              Paso 1 · Consumidora
+              Paso 1 · Consumidor
             </p>
             <ConsumerPicker brand={user.brand} value={consumer} onChange={setConsumer} />
           </div>
@@ -313,7 +313,7 @@ export default function Purchases() {
           <div className="hairline my-5" />
 
           <ul className="text-sm space-y-1.5">
-            <Row label="Consumidora" value={consumer ? fullName(consumer.firstName, consumer.lastName) : "—"} />
+            <Row label="Consumidor" value={consumer ? fullName(consumer.firstName, consumer.lastName) : "—"} />
             <Row label="BA" value={user.name} />
             <Row label="Marca" value={brand === "ysl" ? "YSL Beauty" : "Lancôme"} />
           </ul>
@@ -323,7 +323,7 @@ export default function Purchases() {
           </Button>
           {consumer && (
             <Button asChild variant="link" className="w-full mt-2 text-xs">
-              <Link to={`/consumidoras/${consumer.id}`}>Ir al perfil 360°</Link>
+              <Link to={`/consumidores/${consumer.id}`}>Ir al perfil 360°</Link>
             </Button>
           )}
         </Card>
@@ -374,7 +374,7 @@ export default function Purchases() {
                 <thead className="text-xs uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/30">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                    <th className="text-left px-4 py-3 font-medium">Consumidora</th>
+                    <th className="text-left px-4 py-3 font-medium">Consumidor</th>
                     <th className="text-left px-4 py-3 font-medium">Marca</th>
                     <th className="text-left px-4 py-3 font-medium">Productos</th>
                     <th className="text-right px-4 py-3 font-medium">Total</th>
@@ -391,7 +391,7 @@ export default function Purchases() {
                         <td className="px-4 py-3">
                           {c ? (
                             <Link
-                              to={`/consumidoras/${c.id}`}
+                              to={`/consumidores/${c.id}`}
                               className="hover:underline"
                             >
                               {fullName(c.firstName, c.lastName)}

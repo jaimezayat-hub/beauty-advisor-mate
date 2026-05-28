@@ -81,7 +81,7 @@ export default function Agenda() {
       return {
         Fecha: formatDate(a.date),
         Hora: new Date(a.date).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }),
-        Consumidora: c ? fullName(c.firstName, c.lastName) : "",
+        Consumidor: c ? fullName(c.firstName, c.lastName) : "",
         Teléfono: c?.phone ?? "",
         Tipo: a.type,
         BA: ba?.name ?? "",
@@ -276,7 +276,7 @@ export default function Agenda() {
               <thead className="text-xs uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/30">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Fecha</th>
-                  <th className="text-left px-4 py-3 font-medium">Consumidora</th>
+                  <th className="text-left px-4 py-3 font-medium">Consumidor</th>
                   <th className="text-left px-4 py-3 font-medium">Tipo</th>
                   <th className="text-left px-4 py-3 font-medium">BA</th>
                   <th className="text-left px-4 py-3 font-medium">Estado</th>
@@ -326,7 +326,7 @@ export default function Agenda() {
                         </td>
                         <td className="px-4 py-3">
                           {c ? (
-                            <Link to={`/consumidoras/${c.id}`} className="hover:underline">
+                            <Link to={`/consumidores/${c.id}`} className="hover:underline">
                               {fullName(c.firstName, c.lastName)}
                             </Link>
                           ) : "—"}
@@ -437,7 +437,7 @@ function NewAppointmentDialog({
   }, [defaultDate]);
 
   const submit = () => {
-    if (!consumer) return toast.error("Selecciona una consumidora");
+    if (!consumer) return toast.error("Selecciona una consumidor");
     const dt = new Date(`${date}T${time}:00`);
     onCreate({
       id: `a-${Date.now()}`,
@@ -461,7 +461,7 @@ function NewAppointmentDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label className="mb-2 block">Consumidora</Label>
+            <Label className="mb-2 block">Consumidor</Label>
             <ConsumerPicker brand={user.brand} value={consumer} onChange={setConsumer} />
           </div>
           <div className="grid grid-cols-2 gap-3">
