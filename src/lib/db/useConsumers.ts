@@ -28,6 +28,10 @@ export interface ConsumersFilter {
   search?: string;
   segment?: Segment | "Todas";
   brand?: string;
+  baId?: string | "all";
+  storeId?: string | "all";
+  from?: string;
+  to?: string;
 }
 
 /** Lista de consumidores. RLS ya restringe por rol; aquí sólo se filtra por UI. */
@@ -43,6 +47,10 @@ export function useConsumersList(filters: ConsumersFilter, enabled = true) {
         .order("updated_at", { ascending: false })
         .limit(500);
       if (filters.brand) q = q.eq("brand", filters.brand as "lancome" | "ysl");
+      if (filters.baId && filters.baId !== "all") q = q.eq("owner_ba_id", filters.baId);
+      if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
+      if (filters.from) q = q.gte("created_at", filters.from);
+      if (filters.to) q = q.lte("created_at", filters.to);
       if (filters.segment && filters.segment !== "Todas")
         q = q.eq("segment", filters.segment);
       if (filters.search?.trim()) {
