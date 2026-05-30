@@ -49,7 +49,7 @@ import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
-import { usePerformanceKpis, type KpiPeriod } from "@/lib/db/usePerformance";
+import { usePerformanceKpis, useTopProducts, type KpiPeriod } from "@/lib/db/usePerformance";
 import {
   ReportFilters,
   defaultFilters,
@@ -94,6 +94,14 @@ export default function Performance() {
     storeId: filters.storeId,
     category,
   });
+  const { data: topProducts } = useTopProducts(isRealSession, period, {
+    from: filters.from.toISOString(),
+    to: filters.to.toISOString(),
+    brand: filters.brand,
+    baId: filters.baId,
+    storeId: filters.storeId,
+    category,
+  }, 8);
   const periodLabel = periodLabelFromFilters(filters);
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
@@ -182,6 +190,7 @@ export default function Performance() {
           apptStats={apptStats}
           liveKpis={liveKpis}
           category={category}
+          topProducts={topProducts ?? []}
         />
       )}
       {/* Desempeño del equipo en scope (oculto para BAs) */}
@@ -192,7 +201,7 @@ export default function Performance() {
   );
 }
 
-function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category }) {
+function BaPanel({ profile, user, period, apptStats, liveKpis, category, topProducts }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
   const categoryTotal = Object.values(profile.categorySales).reduce((s, v) => s + v, 0) || 1;
   const categoryShare =
@@ -297,7 +306,7 @@ function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { pro
         <ActionPanel profile={profile} focus={focus} />
       </div>
 
-      <Charts profile={profile} focus={focus} setFocus={setFocus} />
+      <Charts profile={profile} focus={focus} setFocus={setFocus} topProducts={topProducts} />
     </div>
   );
 }
@@ -430,7 +439,7 @@ function ActionPanel({ profile, focus }: { profile: BaKpiProfile; focus: KpiFocu
   );
 }
 
-function Charts({ profile, focus, setFocus }: { profile: BaKpiProfile; focus: KpiFocus; setFocus: (f: KpiFocus) => void }) {
+function Charts({ profile, focus, setFocus, topProducts }: { profile: BaKpiProfile; focus: KpiFocus; setFocus: (f: KpiFocus) => void; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
   const [categoryKey, setCategoryKey] = useState("Skincare");
   const category = Object.entries(profile.categorySales).map(([name, value]) => ({ name, value }));
   const conversionData = profile.history.map((w) => ({ ...w, conversion: Math.round((w.convertedRecommendations / w.recommendations) * 100) }));
@@ -509,6 +518,17 @@ function Charts({ profile, focus, setFocus }: { profile: BaKpiProfile; focus: Kp
           </BarChart>
         </ChartCard>
       </div>
+      {topProducts.length > 0 && (
+        <ChartCard title="Top productos vendidos" action={`${topProducts.length} productos`}>
+          <BarChart data={topProducts.map((p) => ({ name: p.name.length > 24 ? p.name.slice(0, 22) + "…" : p.name, ventas: p.sales, qty: p.qty }))} layout="vertical" margin={{ left: 12, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={SOFT_GRID} />
+            <XAxis type="number" tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} />
+            <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 11 }} />
+            <Tooltip formatter={(v, n) => n === "ventas" ? formatMoney(Number(v)) : v} />
+            <Bar dataKey="ventas" fill="hsl(var(--primary))" radius={[0, 8, 8, 0]} barSize={18} />
+          </BarChart>
+        </ChartCard>
+      )}
     </section>
   );
 }
