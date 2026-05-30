@@ -48,6 +48,51 @@ export interface PerformanceFilters {
   category?: PerformanceCategory;
 }
 
+export interface TopProductRow {
+  sku: string;
+  name: string;
+  category: PerformanceCategory | "unknown";
+  qty: number;
+  sales: number;
+}
+
+export function useTopProducts(enabled: boolean, period: KpiPeriod = "mes", filters: PerformanceFilters = {}, limit = 10) {
+  const fromISO = filters.from ?? startISO(period);
+  const toISO = filters.to;
+  return useQuery({
+    enabled,
+    queryKey: ["top-products", period, fromISO, toISO, filters, limit],
+    queryFn: async (): Promise<TopProductRow[]> => {
+      const sb = supabase as any;
+      let q = sb
+        .from("purchases")
+        .select("id,ba_id,store_id,brand,purchased_at,purchase_items(qty,unit_price,sku_snapshot,name_snapshot,products(category))")
+        .is("deleted_at", null)
+        .gte("purchased_at", fromISO)
+        .limit(2000);
+      if (toISO) q = q.lte("purchased_at", toISO);
+      if (filters.brand && filters.brand !== "all") q = q.eq("brand", filters.brand);
+      if (filters.baId && filters.baId !== "all") q = q.eq("ba_id", filters.baId);
+      if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
+      const { data, error } = await q;
+      if (error) throw error;
+      const acc = new Map<string, TopProductRow>();
+      (data ?? []).forEach((row: any) => {
+        (row.purchase_items ?? []).forEach((it: any) => {
+          const cat = normalizeCategory(it.products?.category) ?? categoryFromSku(it.sku_snapshot ?? "");
+          if (filters.category && filters.category !== "all" && cat !== filters.category) return;
+          const key = it.sku_snapshot ?? it.name_snapshot ?? "?";
+          const prev = acc.get(key) ?? { sku: key, name: it.name_snapshot ?? key, category: cat ?? "unknown", qty: 0, sales: 0 };
+          prev.qty += Number(it.qty ?? 1);
+          prev.sales += Number(it.unit_price ?? 0) * Number(it.qty ?? 1);
+          acc.set(key, prev);
+        });
+      });
+      return Array.from(acc.values()).sort((a, b) => b.sales - a.sales).slice(0, limit);
+    },
+  });
+}
+
 /**
  * Reads monthly KPI views. Returns aggregated totals for the current month
  * within the user's RLS scope (BA -> self, manager -> store, supervisor -> region).
