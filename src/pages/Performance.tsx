@@ -45,6 +45,7 @@ import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
+import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
@@ -229,6 +230,42 @@ function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { pro
   return (
     <div className="space-y-6">
       <ExecutiveHero profile={profile} user={user} monthSales={monthSales} targetPct={targetPct} period={period} />
+
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            downloadCSV(`mi-desempeno-${user.name.split(" ")[0]}.csv`, [
+              { metrica: "Período", valor: period },
+              { metrica: "Categoría", valor: category },
+              { metrica: "Ventas", valor: monthSales },
+              { metrica: "Objetivo", valor: profile.monthlyTarget },
+              { metrica: "Avance %", valor: targetPct },
+              { metrica: "Transacciones", valor: transactions },
+              { metrica: "Ticket promedio", valor: Math.round(averageTicket) },
+              { metrica: "Nuevas consumidoras", valor: newConsumers },
+              { metrica: "Objetivo registros", valor: profile.newConsumerTarget },
+              { metrica: "Seguimientos completados", valor: fupsCompleted },
+              { metrica: "Seguimientos pendientes", valor: fupsPending },
+              { metrica: "Citas agendadas", valor: profile.appointmentsScheduled },
+              { metrica: "Citas completadas", valor: profile.appointmentsCompleted },
+              { metrica: "Citas canceladas", valor: profile.appointmentsCancelled },
+              { metrica: "Citas reagendadas", valor: apptStats.rescheduled },
+              { metrica: "No-show", valor: apptStats.noShow },
+              { metrica: "Días activa", valor: profile.activeDays },
+              { metrica: "Días laborales", valor: profile.workDays },
+              { metrica: "Adopción", valor: profile.adoptionScore },
+              { metrica: "Ranking", valor: `#${profile.rank} de ${profile.rankTotal}` },
+              { metrica: "Ventas Skincare", valor: profile.categorySales.Skincare },
+              { metrica: "Ventas Makeup", valor: profile.categorySales.Makeup },
+              { metrica: "Ventas Fragancia", valor: profile.categorySales.Fragancia },
+            ]);
+          }}
+        >
+          <Download className="size-4 mr-1" /> Exportar Mi Desempeño
+        </Button>
+      </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-4">
         <section className="space-y-3">
