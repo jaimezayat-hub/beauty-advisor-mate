@@ -649,6 +649,22 @@ function stamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function applyCategoryToPurchase(purchase: Purchase, category: ReportFiltersValue["category"]): Purchase {
+  if (category === "all") return purchase;
+  const lines = purchase.lines.filter((line) => {
+    const lineCategory = line.category ?? categoryFromSku(line.sku);
+    return lineCategory === category;
+  });
+  const total = lines.reduce((sum, line) => sum + line.price * line.qty, 0);
+  return { ...purchase, lines, total };
+}
+
+function categoryFromSku(sku: string): ReportFiltersValue["category"] {
+  if (/AGV|RNM|PUR/i.test(sku)) return "Skincare";
+  if (/LAV|IDO|LIB|MYS/i.test(sku)) return "Fragancia";
+  return "Makeup";
+}
+
 function fallbackTarget(filters: ReportFiltersValue, baCount: number) {
   // Estimación blanda cuando no hay metas configuradas: 250k MXN por BA por mes
   const days = Math.max(
