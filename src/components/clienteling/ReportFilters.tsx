@@ -26,6 +26,7 @@ export interface ReportFiltersValue {
   region: string | "all";
   storeId: string | "all";
   baId: string | "all";
+  category: "Skincare" | "Makeup" | "Fragancia" | "all";
 }
 
 export function presetRange(p: RangePreset, now = new Date()): { from: Date; to: Date } {
@@ -64,6 +65,7 @@ export function defaultFilters(): ReportFiltersValue {
     region: "all",
     storeId: "all",
     baId: "all",
+    category: "all",
   };
 }
 
@@ -130,6 +132,7 @@ export function ReportFilters({ value, onChange, stores, users, regions, scope }
     value.region !== "all" ||
     value.storeId !== "all" ||
     value.baId !== "all" ||
+    value.category !== "all" ||
     value.preset !== "mes";
 
   return (
@@ -234,6 +237,18 @@ export function ReportFilters({ value, onChange, stores, users, regions, scope }
             ...filteredBAs.map((b) => ({ value: b.id, label: b.name })),
           ]}
           disabled={scope.kind === "self"}
+        />
+
+        <FilterSelect
+          label="Tipo de producto"
+          value={value.category}
+          onChange={(v) => onChange({ ...value, category: v as any })}
+          options={[
+            { value: "all", label: "Todos los productos" },
+            { value: "Skincare", label: "Skincare" },
+            { value: "Makeup", label: "Makeup" },
+            { value: "Fragancia", label: "Fragancia" },
+          ]}
         />
 
         {isFiltered && (
