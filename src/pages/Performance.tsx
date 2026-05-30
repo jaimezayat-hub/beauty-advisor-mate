@@ -49,7 +49,7 @@ import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
-import { usePerformanceKpis, type KpiPeriod } from "@/lib/db/usePerformance";
+import { usePerformanceKpis, useTopProducts, type KpiPeriod } from "@/lib/db/usePerformance";
 import {
   ReportFilters,
   defaultFilters,
@@ -94,6 +94,14 @@ export default function Performance() {
     storeId: filters.storeId,
     category,
   });
+  const { data: topProducts } = useTopProducts(isRealSession, period, {
+    from: filters.from.toISOString(),
+    to: filters.to.toISOString(),
+    brand: filters.brand,
+    baId: filters.baId,
+    storeId: filters.storeId,
+    category,
+  }, 8);
   const periodLabel = periodLabelFromFilters(filters);
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
@@ -182,6 +190,7 @@ export default function Performance() {
           apptStats={apptStats}
           liveKpis={liveKpis}
           category={category}
+          topProducts={topProducts ?? []}
         />
       )}
       {/* Desempeño del equipo en scope (oculto para BAs) */}
