@@ -65,10 +65,10 @@ export function usePerformanceKpis(
     queryFn: async (): Promise<KpiSummary> => {
       const sb = supabase as any;
       const category = filters.category ?? "all";
-      const applyShared = (q: any, dateColumn: string) => {
+      const applyShared = (q: any, dateColumn: string, withBrand = true) => {
         let next = q.gte(dateColumn, fromISO);
         if (toISO) next = next.lte(dateColumn, toISO);
-        if (filters.brand && filters.brand !== "all") next = next.eq("brand", filters.brand);
+        if (withBrand && filters.brand && filters.brand !== "all") next = next.eq("brand", filters.brand);
         if (filters.baId && filters.baId !== "all") next = next.eq("ba_id", filters.baId);
         if (filters.storeId && filters.storeId !== "all") next = next.eq("store_id", filters.storeId);
         return next;
@@ -86,9 +86,9 @@ export function usePerformanceKpis(
           if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
           return q;
         })(),
-        applyShared(sb.from("follow_ups").select("id,ba_id,store_id,outcome,completed_at,due_at"), "due_at"),
+        applyShared(sb.from("follow_ups").select("id,ba_id,store_id,outcome,completed_at,due_at"), "due_at", false),
         applyShared(sb.from("appointments").select("id,ba_id,store_id,status,scheduled_at"), "scheduled_at"),
-        applyShared(sb.from("sample_deliveries").select("id,ba_id,store_id,converted_purchase_id,delivered_at"), "delivered_at"),
+        applyShared(sb.from("sample_deliveries").select("id,ba_id,store_id,converted_purchase_id,delivered_at"), "delivered_at", false),
       ]);
       const purchRows: any[] = purchases.data ?? [];
       const purchaseAmount = (r: any) => amountForCategory(r, category);
