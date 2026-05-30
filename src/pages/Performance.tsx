@@ -117,12 +117,18 @@ export default function Performance() {
         </div>
       </div>
 
-      {isBa && current ? (
-        <BaPanel profile={current} user={user} period={periodLabel} apptStats={apptStats} liveKpis={liveKpis} />
-      ) : (
-        <TeamPanel profiles={profiles} users={users} />
+      {/* Mi desempeño personal (visible para todos los roles) */}
+      {current && (
+        <BaPanel
+          profile={current}
+          user={user}
+          period={periodLabel}
+          apptStats={apptStats}
+          liveKpis={liveKpis}
+        />
       )}
-      {!isBa && <TeamPanel profiles={profiles} users={users} compact />}
+      {/* Desempeño del equipo en scope (oculto para BAs) */}
+      {!isBa && <TeamPanel profiles={profiles} users={users} />}
       {isDirector && <SuccessMetrics profiles={profiles} />}
       {!isBa && <ApptHealthCard stats={apptStats} />}
     </div>
