@@ -42,13 +42,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
@@ -90,7 +83,7 @@ export default function Performance() {
   const user = useCurrentUser()!;
   const { users, baKpis, stores, appointments, isRealSession } = useApp();
   const [filters, setFilters] = useState<ReportFiltersValue>(() => defaultFilters());
-  const [category, setCategory] = useState<Category>("all");
+  const category = filters.category as Category;
   const period = presetToPeriod(filters.preset);
   const { data: liveKpis } = usePerformanceKpis(isRealSession, period, {
     from: filters.from.toISOString(),
@@ -177,21 +170,7 @@ export default function Performance() {
         scope={scope}
       />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Categoría</span>
-        <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
-          <SelectTrigger className="h-8 w-[180px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all" className="text-xs">Todas las categorías</SelectItem>
-            <SelectItem value="Skincare" className="text-xs">Skincare</SelectItem>
-            <SelectItem value="Makeup" className="text-xs">Makeup</SelectItem>
-            <SelectItem value="Fragancia" className="text-xs">Fragancia</SelectItem>
-          </SelectContent>
-        </Select>
-        <span className="text-xs text-muted-foreground ml-2">{periodLabel}</span>
-      </div>
+      <p className="text-xs text-muted-foreground">{periodLabel}</p>
 
       {/* Mi desempeño personal (visible para todos los roles) */}
       {current && (
