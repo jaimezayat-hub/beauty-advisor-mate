@@ -34,6 +34,8 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  UserCheck,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PrivacyConsent } from "@/lib/types";
@@ -117,6 +119,11 @@ export default function ConsumerProfile() {
           <Button asChild size="sm">
             <Link to="/agenda">
               <Calendar className="size-4 mr-1.5" /> Agendar
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link to={`/visitas?consumerId=${c.id}`}>
+              <UserCheck className="size-4 mr-1.5" /> Registrar visita
             </Link>
           </Button>
           {isRealSession && (
