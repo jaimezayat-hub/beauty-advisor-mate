@@ -152,13 +152,12 @@ function buildLocalProfiles(args: { users: User[]; purchases: Purchase[]; consum
 }
 
 function buildLocalHistory(baId: string, purchases: Purchase[], consumers: Consumer[], recommendations: Recommendation[], filters: ReportFiltersValue, amountForCategory: (p: Purchase) => number) {
+  const rangeStart = filters.from.getTime();
+  const rangeEnd = filters.to.getTime();
+  const bucketMs = Math.max(86400000, Math.ceil((rangeEnd - rangeStart + 1) / 8));
   return Array.from({ length: 8 }, (_, idx) => {
-    const end = new Date(filters.to);
-    end.setDate(end.getDate() - (7 - idx) * 7);
-    end.setHours(23, 59, 59, 999);
-    const start = new Date(end);
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    const start = new Date(rangeStart + idx * bucketMs);
+    const end = new Date(Math.min(rangeEnd, rangeStart + (idx + 1) * bucketMs - 1));
     const inWeek = (isoDate: string) => {
       const t = new Date(isoDate).getTime();
       return t >= start.getTime() && t <= end.getTime();
@@ -167,9 +166,9 @@ function buildLocalHistory(baId: string, purchases: Purchase[], consumers: Consu
     const c = consumers.filter((row) => row.assignedBaId === baId && inWeek(row.createdAt));
     const r = recommendations.filter((row) => row.baId === baId && inWeek(row.date) && (filters.category === "all" || row.products.some((x) => categoryFromSku(x.sku) === filters.category)));
     return {
-      week: `S${idx + 1}`,
+      week: start.toLocaleDateString("es-MX", { day: "2-digit", month: "short" }),
       sales: p.reduce((s, row) => s + amountForCategory(row), 0),
-      salesTarget: Math.round(250000 / 4),
+      salesTarget: Math.round(250000 / 8),
       newConsumers: c.length,
       recommendations: r.length,
       convertedRecommendations: r.filter((row) => row.converted).length,
