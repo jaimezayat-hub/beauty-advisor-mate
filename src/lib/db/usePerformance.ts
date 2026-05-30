@@ -230,7 +230,7 @@ function buildProfiles(args: {
   args.consumers.forEach((r) => r.owner_ba_id && baIds.add(r.owner_ba_id));
   const rangeDays = Math.max(1, Math.ceil((new Date(args.toISO).getTime() - new Date(args.fromISO).getTime()) / 86400000));
   const workDays = countWeekdays(args.fromISO, args.toISO);
-  const weekly = (baId: string) => buildHistory(baId, args.purchases, args.consumers, args.purchaseAmount, args.toISO);
+  const weekly = (baId: string) => buildHistory(baId, args.purchases, args.consumers, args.purchaseAmount, args.fromISO, args.toISO);
   const profiles = Array.from(baIds).map((baId) => {
     const purchases = args.purchases.filter((r) => r.ba_id === baId);
     const previousPurchases = args.previousPurchases.filter((r) => r.ba_id === baId);
@@ -302,14 +302,13 @@ function categorySales(purchases: any[]) {
   return out;
 }
 
-function buildHistory(baId: string, purchases: any[], consumers: any[], purchaseAmount: (row: any) => number, toISO: string) {
+function buildHistory(baId: string, purchases: any[], consumers: any[], purchaseAmount: (row: any) => number, fromISO: string, toISO: string) {
+  const rangeStart = new Date(fromISO).getTime();
+  const rangeEnd = new Date(toISO).getTime();
+  const bucketMs = Math.max(86400000, Math.ceil((rangeEnd - rangeStart + 1) / 8));
   return Array.from({ length: 8 }, (_, idx) => {
-    const end = new Date(toISO);
-    end.setDate(end.getDate() - (7 - idx) * 7);
-    end.setHours(23, 59, 59, 999);
-    const start = new Date(end);
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
+    const start = new Date(rangeStart + idx * bucketMs);
+    const end = new Date(Math.min(rangeEnd, rangeStart + (idx + 1) * bucketMs - 1));
     const p = purchases.filter((r) => r.ba_id === baId && within(r.purchased_at, start, end));
     const c = consumers.filter((r) => r.owner_ba_id === baId && within(r.created_at, start, end));
     return {
