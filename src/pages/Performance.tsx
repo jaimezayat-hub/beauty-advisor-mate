@@ -47,9 +47,9 @@ import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
 import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
-import type { BaKpiProfile, User } from "@/lib/types";
+import type { Appointment, BaKpiProfile, Consumer, FollowUp, Purchase, Recommendation, Sample, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
-import { usePerformanceKpis, useTopProducts, type KpiPeriod } from "@/lib/db/usePerformance";
+import { usePerformanceKpis, useTopProducts, type KpiPeriod, type KpiSummary, type TopProductRow } from "@/lib/db/usePerformance";
 import {
   ReportFilters,
   defaultFilters,
@@ -80,9 +80,150 @@ function periodLabelFromFilters(f: ReportFiltersValue): string {
   return map[f.preset];
 }
 
+function buildLocalProfiles(args: { users: User[]; purchases: Purchase[]; consumers: Consumer[]; recommendations: Recommendation[]; appointments: Appointment[]; followUps: FollowUp[]; samples: Sample[]; filters: ReportFiltersValue }): BaKpiProfile[] {
+  const { users, purchases, consumers, recommendations, appointments, followUps, samples, filters } = args;
+  const from = filters.from.getTime();
+  const to = filters.to.getTime();
+  const rangeMs = Math.max(86400000, to - from);
+  const previousFrom = from - rangeMs;
+  const baUsers = users.filter((u) => u.role === "ba");
+  const amountForCategory = (p: Purchase) => p.lines.reduce((sum, l) => {
+    const cat = l.category ?? categoryFromSku(l.sku);
+    return filters.category === "all" || cat === filters.category ? sum + l.qty * l.price : sum;
+  }, 0);
+  const inCurrent = (isoDate: string) => {
+    const t = new Date(isoDate).getTime();
+    return t >= from && t <= to;
+  };
+  const inPrevious = (isoDate: string) => {
+    const t = new Date(isoDate).getTime();
+    return t >= previousFrom && t < from;
+  };
+  const rangeDays = Math.max(1, Math.ceil(rangeMs / 86400000));
+  const workDays = countWeekdays(filters.from, filters.to);
+  const profiles = baUsers.map((ba) => {
+    const currentPurchases = purchases.filter((p) => p.baId === ba.id && inCurrent(p.date) && amountForCategory(p) > 0);
+    const previousPurchases = purchases.filter((p) => p.baId === ba.id && inPrevious(p.date) && amountForCategory(p) > 0);
+    const currentConsumers = consumers.filter((c) => c.assignedBaId === ba.id && inCurrent(c.createdAt));
+    const currentRecs = recommendations.filter((r) => r.baId === ba.id && inCurrent(r.date) && (filters.category === "all" || r.products.some((p) => categoryFromSku(p.sku) === filters.category)));
+    const currentFups = followUps.filter((f) => f.baId === ba.id && inCurrent(f.date));
+    const currentAppts = appointments.filter((a) => a.baId === ba.id && inCurrent(a.date));
+    const currentSamples = samples.filter((s) => s.baId === ba.id && inCurrent(s.date));
+    const periodSales = currentPurchases.reduce((s, p) => s + amountForCategory(p), 0);
+    const activeDates = new Set<string>();
+    currentPurchases.forEach((p) => activeDates.add(p.date.slice(0, 10)));
+    currentConsumers.forEach((c) => activeDates.add(c.createdAt.slice(0, 10)));
+    currentRecs.forEach((r) => activeDates.add(r.date.slice(0, 10)));
+    currentFups.forEach((f) => activeDates.add(f.date.slice(0, 10)));
+    currentAppts.forEach((a) => activeDates.add(a.date.slice(0, 10)));
+    const history = buildLocalHistory(ba.id, purchases, consumers, recommendations, filters, amountForCategory);
+    return {
+      baId: ba.id,
+      baName: ba.name,
+      storeId: ba.storeId,
+      brand: ba.brand,
+      periodSales,
+      previousSales: previousPurchases.reduce((s, p) => s + amountForCategory(p), 0),
+      transactions: currentPurchases.length,
+      periodNewConsumers: currentConsumers.length,
+      recommendationsTotal: currentRecs.length,
+      convertedRecommendationsTotal: currentRecs.filter((r) => r.converted).length,
+      monthlyTarget: Math.max(1, Math.round((250000 * rangeDays) / 30)),
+      newConsumerTarget: Math.max(1, Math.round((16 * rangeDays) / 30)),
+      activeDays: activeDates.size,
+      workDays,
+      followUpsCompleted: currentFups.filter((f) => f.status === "completado" || f.outcome === "Convirtió").length,
+      followUpsPending: currentFups.filter((f) => f.status !== "completado" && f.outcome !== "Convirtió").length,
+      birthdaysContacted: currentFups.filter((f) => f.type === "Cumpleaños" && f.status === "completado").length,
+      birthdaysTotal: currentFups.filter((f) => f.type === "Cumpleaños").length,
+      replenishmentsActivated: currentSamples.filter((s) => s.converted).length,
+      appointmentsScheduled: currentAppts.length,
+      appointmentsCompleted: currentAppts.filter((a) => a.status === "Completada").length,
+      appointmentsCancelled: currentAppts.filter((a) => a.status === "Cancelada").length,
+      adoptionScore: Math.min(100, Math.round((activeDates.size / Math.max(1, workDays)) * 70 + (currentFups.length ? 15 : 0) + (currentConsumers.length ? 15 : 0))),
+      rank: 1,
+      rankTotal: baUsers.length,
+      categorySales: categorySalesFromPurchases(currentPurchases),
+      history,
+    };
+  });
+  const ranked = profiles.sort((a, b) => (b.periodSales ?? 0) - (a.periodSales ?? 0));
+  return ranked.map((p, i) => ({ ...p, rank: i + 1, rankTotal: ranked.length }));
+}
+
+function buildLocalHistory(baId: string, purchases: Purchase[], consumers: Consumer[], recommendations: Recommendation[], filters: ReportFiltersValue, amountForCategory: (p: Purchase) => number) {
+  const rangeStart = filters.from.getTime();
+  const rangeEnd = filters.to.getTime();
+  const bucketMs = Math.max(86400000, Math.ceil((rangeEnd - rangeStart + 1) / 8));
+  return Array.from({ length: 8 }, (_, idx) => {
+    const start = new Date(rangeStart + idx * bucketMs);
+    const end = new Date(Math.min(rangeEnd, rangeStart + (idx + 1) * bucketMs - 1));
+    const inWeek = (isoDate: string) => {
+      const t = new Date(isoDate).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    };
+    const p = purchases.filter((row) => row.baId === baId && inWeek(row.date) && amountForCategory(row) > 0);
+    const c = consumers.filter((row) => row.assignedBaId === baId && inWeek(row.createdAt));
+    const r = recommendations.filter((row) => row.baId === baId && inWeek(row.date) && (filters.category === "all" || row.products.some((x) => categoryFromSku(x.sku) === filters.category)));
+    return {
+      week: start.toLocaleDateString("es-MX", { day: "2-digit", month: "short" }),
+      sales: p.reduce((s, row) => s + amountForCategory(row), 0),
+      salesTarget: Math.round(250000 / 8),
+      newConsumers: c.length,
+      recommendations: r.length,
+      convertedRecommendations: r.filter((row) => row.converted).length,
+    };
+  });
+}
+
+function buildLocalTopProducts(purchases: Purchase[], filters: ReportFiltersValue, limit: number): TopProductRow[] {
+  const from = filters.from.getTime();
+  const to = filters.to.getTime();
+  const acc = new Map<string, TopProductRow>();
+  purchases.forEach((purchase) => {
+    const t = new Date(purchase.date).getTime();
+    if (t < from || t > to) return;
+    if (filters.brand !== "all" && purchase.brand !== filters.brand) return;
+    if (filters.baId !== "all" && purchase.baId !== filters.baId) return;
+    if (filters.storeId !== "all" && purchase.storeId !== filters.storeId) return;
+    purchase.lines.forEach((line) => {
+      const category = line.category ?? categoryFromSku(line.sku);
+      if (filters.category !== "all" && category !== filters.category) return;
+      const prev = acc.get(line.sku) ?? { sku: line.sku, name: line.name, category, qty: 0, sales: 0 };
+      prev.qty += line.qty;
+      prev.sales += line.qty * line.price;
+      acc.set(line.sku, prev);
+    });
+  });
+  return Array.from(acc.values()).sort((a, b) => b.sales - a.sales).slice(0, limit);
+}
+
+function categorySalesFromPurchases(purchases: Purchase[]) {
+  const out = { Skincare: 0, Makeup: 0, Fragancia: 0 };
+  purchases.forEach((p) => p.lines.forEach((line) => {
+    out[line.category ?? categoryFromSku(line.sku)] += line.qty * line.price;
+  }));
+  return out;
+}
+
+function categoryFromSku(sku: string): Category {
+  if (/AGV|RNM|PUR/i.test(sku)) return "Skincare";
+  if (/LAV|IDO|LIB|MYS/i.test(sku)) return "Fragancia";
+  return "Makeup";
+}
+
+function countWeekdays(from: Date, to: Date) {
+  let count = 0;
+  for (const d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) count += 1;
+  }
+  return Math.max(1, count);
+}
+
 export default function Performance() {
   const user = useCurrentUser()!;
-  const { users, baKpis, stores, appointments, isRealSession } = useApp();
+  const { users, stores, consumers, purchases, recommendations, appointments, followUps, samples, isRealSession } = useApp();
   const [filters, setFilters] = useState<ReportFiltersValue>(() => defaultFilters());
   const category = filters.category as Category;
   const period = presetToPeriod(filters.preset);
@@ -94,7 +235,7 @@ export default function Performance() {
     storeId: filters.storeId,
     category,
   });
-  const { data: topProducts } = useTopProducts(isRealSession, period, {
+  const { data: liveTopProducts } = useTopProducts(isRealSession, period, {
     from: filters.from.toISOString(),
     to: filters.to.toISOString(),
     brand: filters.brand,
@@ -108,7 +249,12 @@ export default function Performance() {
   const scope = getScope(user);
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
   const regions = Array.from(new Set(stores.map((s) => s.region)));
-  const sourceProfiles = isRealSession ? liveKpis?.profiles ?? [] : baKpis;
+  const seedProfiles = useMemo(
+    () => buildLocalProfiles({ users, purchases, consumers, recommendations, appointments, followUps, samples, filters }),
+    [users, purchases, consumers, recommendations, appointments, followUps, samples, filters],
+  );
+  const sourceProfiles = isRealSession ? liveKpis?.profiles ?? [] : seedProfiles;
+  const topProducts = isRealSession ? liveTopProducts ?? [] : buildLocalTopProducts(purchases, filters, 8);
   const baseProfiles = sourceProfiles.filter((k) => {
     const u = users.find((x) => x.id === k.baId);
     const storeId = u?.storeId ?? k.storeId ?? "";
@@ -201,24 +347,24 @@ export default function Performance() {
   );
 }
 
-function BaPanel({ profile, user, period, apptStats, liveKpis, category, topProducts }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
+function BaPanel({ profile, user, period, apptStats, category, topProducts }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: KpiSummary; category: Category; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
   const categoryTotal = Object.values(profile.categorySales).reduce((s, v) => s + v, 0) || 1;
   const categoryShare =
     category === "all" ? 1 : (profile.categorySales[category] ?? 0) / categoryTotal;
   const scale = (n: number) => Math.round(n * categoryShare);
   const seedMonthSales = scale(profile.history.slice(-4).reduce((s, w) => s + w.sales, 0));
-  const previousSales = profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0);
-  const monthSales = scale(liveKpis ? liveKpis.sales : seedMonthSales);
-  const transactions = scale(liveKpis ? liveKpis.transactions : Math.round(seedMonthSales / 3450));
-  const averageTicket = liveKpis ? liveKpis.avgTicket : seedMonthSales / Math.max(transactions, 1);
-  const recs = profile.history.slice(-4).reduce((s, w) => s + w.recommendations, 0);
-  const converted = profile.history.slice(-4).reduce((s, w) => s + w.convertedRecommendations, 0);
-  const newConsumers = liveKpis ? liveKpis.newConsumers : profile.history.slice(-4).reduce((s, w) => s + w.newConsumers, 0);
+  const previousSales = profile.previousSales ?? scale(profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0));
+  const monthSales = profile.periodSales ?? seedMonthSales;
+  const transactions = profile.transactions ?? scale(Math.round(seedMonthSales / 3450));
+  const averageTicket = transactions > 0 ? monthSales / transactions : 0;
+  const recs = profile.recommendationsTotal ?? profile.history.slice(-4).reduce((s, w) => s + w.recommendations, 0);
+  const converted = profile.convertedRecommendationsTotal ?? profile.history.slice(-4).reduce((s, w) => s + w.convertedRecommendations, 0);
+  const newConsumers = profile.periodNewConsumers ?? profile.history.slice(-4).reduce((s, w) => s + w.newConsumers, 0);
   const targetPct = Math.round((monthSales / profile.monthlyTarget) * 100);
   const growth = previousSales > 0 ? Math.round(((monthSales - previousSales) / previousSales) * 100) : 0;
-  const fupsCompleted = liveKpis ? liveKpis.followupsCompleted : profile.followUpsCompleted;
-  const fupsPending = liveKpis ? liveKpis.followupsPending : profile.followUpsPending;
+  const fupsCompleted = profile.followUpsCompleted;
+  const fupsPending = profile.followUpsPending;
 
   const salesSpark = profile.history.map((w) => Math.max(1, w.sales));
   const newSpark = profile.history.map((w) => Math.max(1, w.newConsumers));
