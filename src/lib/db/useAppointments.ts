@@ -10,6 +10,7 @@ export const appointmentsKey = (filters?: unknown) =>
 export interface AppointmentsFilter {
   brand?: Brand | "all";
   baId?: string | "all";
+  storeId?: string | "all";
   from?: string;
   to?: string;
 }
@@ -26,6 +27,7 @@ export function useAppointmentsList(filters: AppointmentsFilter, enabled = true)
         .limit(500);
       if (filters.brand && filters.brand !== "all") q = q.eq("brand", filters.brand);
       if (filters.baId && filters.baId !== "all") q = q.eq("ba_id", filters.baId);
+      if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
       if (filters.from) q = q.gte("scheduled_at", filters.from);
       if (filters.to) q = q.lte("scheduled_at", filters.to);
       const { data, error } = await q;
