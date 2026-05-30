@@ -439,7 +439,7 @@ function ActionPanel({ profile, focus }: { profile: BaKpiProfile; focus: KpiFocu
   );
 }
 
-function Charts({ profile, focus, setFocus }: { profile: BaKpiProfile; focus: KpiFocus; setFocus: (f: KpiFocus) => void }) {
+function Charts({ profile, focus, setFocus, topProducts }: { profile: BaKpiProfile; focus: KpiFocus; setFocus: (f: KpiFocus) => void; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
   const [categoryKey, setCategoryKey] = useState("Skincare");
   const category = Object.entries(profile.categorySales).map(([name, value]) => ({ name, value }));
   const conversionData = profile.history.map((w) => ({ ...w, conversion: Math.round((w.convertedRecommendations / w.recommendations) * 100) }));
@@ -518,6 +518,17 @@ function Charts({ profile, focus, setFocus }: { profile: BaKpiProfile; focus: Kp
           </BarChart>
         </ChartCard>
       </div>
+      {topProducts.length > 0 && (
+        <ChartCard title="Top productos vendidos" action={`${topProducts.length} productos`}>
+          <BarChart data={topProducts.map((p) => ({ name: p.name.length > 24 ? p.name.slice(0, 22) + "…" : p.name, ventas: p.sales, qty: p.qty }))} layout="vertical" margin={{ left: 12, right: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={SOFT_GRID} />
+            <XAxis type="number" tickFormatter={(v) => `$${Math.round(Number(v) / 1000)}k`} />
+            <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 11 }} />
+            <Tooltip formatter={(v, n) => n === "ventas" ? formatMoney(Number(v)) : v} />
+            <Bar dataKey="ventas" fill="hsl(var(--primary))" radius={[0, 8, 8, 0]} barSize={18} />
+          </BarChart>
+        </ChartCard>
+      )}
     </section>
   );
 }
