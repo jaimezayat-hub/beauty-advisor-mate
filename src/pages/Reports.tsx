@@ -80,16 +80,21 @@ export default function Reports() {
     isRealSession,
   } = useApp();
 
-  const dbConsumers = useConsumersList({}, isRealSession);
-  const dbPurchases = usePurchasesList({}, isRealSession);
-  const dbAppts = useAppointmentsList({}, isRealSession);
-  const dbFollowUps = useFollowUpsList(isRealSession);
-  const dbVisits = useVisitsList(
-    user.role === "ba"
-      ? { baId: user.id, limit: 500 }
-      : { storeId: user.storeId, limit: 500 },
-    isRealSession,
-  );
+  const scope = getScope(user);
+  const [filters, setFilters] = useState<ReportFiltersValue>(defaultFilters);
+  const queryFilters = {
+    brand: filters.brand,
+    baId: filters.baId,
+    storeId: filters.storeId,
+    from: filters.from.toISOString(),
+    to: filters.to.toISOString(),
+  };
+
+  const dbConsumers = useConsumersList(queryFilters, isRealSession);
+  const dbPurchases = usePurchasesList(queryFilters, isRealSession);
+  const dbAppts = useAppointmentsList(queryFilters, isRealSession);
+  const dbFollowUps = useFollowUpsList(queryFilters, isRealSession);
+  const dbVisits = useVisitsList({ ...queryFilters, limit: 500 }, isRealSession);
 
   const allConsumers = isRealSession ? (dbConsumers.data ?? []) : seedConsumers;
   const allPurchases = isRealSession ? (dbPurchases.data ?? []) : seedPurchases;
@@ -97,13 +102,11 @@ export default function Reports() {
   const allFollowUps = isRealSession ? (dbFollowUps.data ?? []) : seedFollowUps;
   const allVisits = isRealSession ? (dbVisits.data ?? []) : [];
 
-  const scope = getScope(user);
   const regions = useMemo(
     () => Array.from(new Set(stores.map((s) => s.region))).sort(),
     [stores],
   );
 
-  const [filters, setFilters] = useState<ReportFiltersValue>(defaultFilters);
   const goals = useReportGoals(
     {
       brand: filters.brand,
