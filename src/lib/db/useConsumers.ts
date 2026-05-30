@@ -7,6 +7,7 @@ import {
   mapAppointment,
   mapFollowUp,
   mapSampleDelivery,
+  mapVisit,
 } from "./mappers";
 import type {
   Consumer,
@@ -16,6 +17,7 @@ import type {
   FollowUp,
   Sample,
   Message,
+  Visit,
 } from "@/lib/types";
 
 export const consumersKey = (filters?: unknown) =>
@@ -174,6 +176,7 @@ export interface ConsumerTimeline {
   followUps: FollowUp[];
   samples: Sample[];
   messages: Message[];
+  visits: Visit[];
   lastTransactionAt?: string;
 }
 
@@ -184,7 +187,7 @@ export function useConsumerTimeline(id: string | undefined, enabled = true) {
     enabled: !!id && enabled,
     queryFn: async (): Promise<ConsumerTimeline> => {
       if (!id) {
-        return { purchases: [], appointments: [], followUps: [], samples: [], messages: [] };
+        return { purchases: [], appointments: [], followUps: [], samples: [], messages: [], visits: [] };
       }
       const [pur, appts, fups, samps, wa, sampleDefs, vis] = await Promise.all([
         supabase
