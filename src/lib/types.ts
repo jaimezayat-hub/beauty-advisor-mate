@@ -46,6 +46,8 @@ export interface PurchaseLine {
   name: string;
   qty: number;
   price: number;
+  productId?: string;
+  category?: "Skincare" | "Makeup" | "Fragancia";
 }
 
 export interface Purchase {
@@ -231,6 +233,9 @@ export interface WeeklyKpi {
 
 export interface BaKpiProfile {
   baId: string;
+  baName?: string;
+  storeId?: string;
+  brand?: Brand;
   monthlyTarget: number;
   newConsumerTarget: number;
   activeDays: number;
