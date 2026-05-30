@@ -16,27 +16,6 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 
 type Cat = Product["category"] | "Maquillaje" | "Fragancias";
 
-const COLOR_BUCKETS: { label: string; hex: string; range: [number, number][] }[] = [
-  { label: "Nude", hex: "#d8b89a", range: [[20, 45]] },
-  { label: "Rosa", hex: "#e8a0b8", range: [[320, 360], [0, 15]] },
-  { label: "Coral", hex: "#ef6c5a", range: [[5, 20]] },
-  { label: "Rojo", hex: "#c0303d", range: [[350, 360], [0, 8]] },
-  { label: "Borgoña", hex: "#7a2638", range: [[330, 355]] },
-  { label: "Tierra", hex: "#8b5a3c", range: [[25, 50]] },
-  { label: "Dorado", hex: "#d4a44a", range: [[40, 60]] },
-  { label: "Verde", hex: "#6e9b6a", range: [[80, 160]] },
-  { label: "Azul", hex: "#5b7fb5", range: [[180, 260]] },
-  { label: "Violeta", hex: "#8a6bb1", range: [[260, 320]] },
-];
-
-function colorOf(p: Product): string {
-  const h = ((p.imageHue % 360) + 360) % 360;
-  for (const c of COLOR_BUCKETS) {
-    if (c.range.some(([a, b]) => h >= a && h <= b)) return c.label;
-  }
-  return "Neutro";
-}
-
 function materialOf(p: Product): string {
   const sc = (p.subcategory ?? "").toLowerCase();
   if (sc.includes("mascara") || sc.includes("delineador") || sc.includes("gloss") || sc.includes("labial")) return "Líquido";
@@ -56,9 +35,10 @@ const CATEGORIES: { value: "all" | Product["category"]; label: string }[] = [
 
 export default function Catalog() {
   const user = useCurrentUser()!;
-  const { activeBrand, isRealSession } = useApp();
-  const dbProducts = useProductsList(activeBrand, isRealSession);
-  const pool: Product[] = isRealSession && dbProducts.data?.length
+  const { activeBrand } = useApp();
+  // Siempre consultamos el catálogo real; usamos seed sólo si la BD viene vacía.
+  const dbProducts = useProductsList(activeBrand, true);
+  const pool: Product[] = dbProducts.data?.length
     ? dbProducts.data
     : SEED_PRODUCTS.filter((p) => p.brand === activeBrand);
 
@@ -70,7 +50,6 @@ export default function Catalog() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<"all" | Product["category"]>("all");
   const [subcats, setSubcats] = useState<Set<string>>(new Set());
-  const [colors, setColors] = useState<Set<string>>(new Set());
   const [materials, setMaterials] = useState<Set<string>>(new Set());
   const [priceRange, setPriceRange] = useState<[number, number]>([0, priceMax]);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -85,12 +64,6 @@ export default function Catalog() {
     const s = new Set<string>();
     inCategory.forEach((p) => p.subcategory && s.add(p.subcategory));
     return Array.from(s).sort();
-  }, [inCategory]);
-
-  const colorOptions = useMemo(() => {
-    const s = new Set<string>();
-    inCategory.forEach((p) => s.add(colorOf(p)));
-    return COLOR_BUCKETS.filter((c) => s.has(c.label));
   }, [inCategory]);
 
   const materialOptions = useMemo(() => {
@@ -111,13 +84,12 @@ export default function Catalog() {
           return false;
       }
       if (subcats.size && (!p.subcategory || !subcats.has(p.subcategory))) return false;
-      if (colors.size && !colors.has(colorOf(p))) return false;
       if (materials.size && !materials.has(materialOf(p))) return false;
       if (p.price < priceRange[0] || p.price > priceRange[1]) return false;
       if (onlyAvailable && !p.inStock) return false;
       return true;
     });
-  }, [inCategory, search, subcats, colors, materials, priceRange, onlyAvailable]);
+  }, [inCategory, search, subcats, materials, priceRange, onlyAvailable]);
 
   const toggleSet = (setter: typeof setSubcats, value: string) =>
     setter((prev) => {
@@ -130,7 +102,6 @@ export default function Catalog() {
     setSearch("");
     setCategory("all");
     setSubcats(new Set());
-    setColors(new Set());
     setMaterials(new Set());
     setPriceRange([0, priceMax]);
     setOnlyAvailable(false);
@@ -139,7 +110,6 @@ export default function Catalog() {
   const activeFilterCount =
     (category !== "all" ? 1 : 0) +
     subcats.size +
-    colors.size +
     materials.size +
     (priceRange[0] > 0 || priceRange[1] < priceMax ? 1 : 0) +
     (onlyAvailable ? 1 : 0);
@@ -176,7 +146,6 @@ export default function Catalog() {
                     onClick={() => {
                       setCategory(c.value);
                       setSubcats(new Set());
-                      setColors(new Set());
                       setMaterials(new Set());
                     }}
                     className={cn(
@@ -203,36 +172,6 @@ export default function Catalog() {
                       onChange={() => toggleSet(setSubcats, s)}
                     />
                   ))}
-                </div>
-              </FilterGroup>
-            )}
-
-            {colorOptions.length > 0 && (
-              <FilterGroup label="Color">
-                <div className="flex flex-wrap gap-2">
-                  {colorOptions.map((c) => {
-                    const active = colors.has(c.label);
-                    return (
-                      <button
-                        key={c.label}
-                        type="button"
-                        onClick={() => toggleSet(setColors, c.label)}
-                        title={c.label}
-                        className={cn(
-                          "flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs transition",
-                          active
-                            ? "border-primary ring-1 ring-primary/30"
-                            : "border-border hover:border-primary/40",
-                        )}
-                      >
-                        <span
-                          className="inline-block size-3.5 rounded-full border border-border"
-                          style={{ background: c.hex }}
-                        />
-                        {c.label}
-                      </button>
-                    );
-                  })}
                 </div>
               </FilterGroup>
             )}
