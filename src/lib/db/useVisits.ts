@@ -70,6 +70,15 @@ export interface CreateVisitInput {
   reasonId?: string;
   appointmentId?: string;
   notes?: string;
+  purchased?: boolean;
+  purchaseTotal?: number;
+  purchaseAt?: string;
+  /** Si se provee, se crea un follow-up post-visita y se vincula a la visita */
+  followUp?: {
+    dueAt: string;
+    channel?: "whatsapp" | "sms" | "email" | "call";
+    notes?: string;
+  };
 }
 
 export function useCreateVisit() {
@@ -86,6 +95,31 @@ export function useCreateVisit() {
         .maybeSingle();
       const brand = (prof?.brand ?? "lancome") as Brand;
       if (!prof?.store_id) throw new Error("Tu perfil no tiene tienda asignada");
+
+      // 1) Crear follow-up post-visita opcional
+      let followUpId: string | null = null;
+      if (input.followUp) {
+        const trigger = input.purchased ? "post_purchase" : "manual";
+        const { data: fu, error: fuErr } = await supabase
+          .from("follow_ups")
+          .insert({
+            consumer_id: input.consumerId,
+            ba_id: uid,
+            store_id: prof.store_id,
+            due_at: input.followUp.dueAt,
+            trigger: trigger as any,
+            channel: (input.followUp.channel ?? "whatsapp") as any,
+            outcome: "pending" as any,
+            notes: input.followUp.notes
+              ? `[post-visita] ${input.followUp.notes}`
+              : "[post-visita]",
+          })
+          .select("id")
+          .single();
+        if (fuErr) throw fuErr;
+        followUpId = fu?.id ?? null;
+      }
+
       const row = {
         consumer_id: input.consumerId,
         ba_id: uid,
@@ -96,10 +130,16 @@ export function useCreateVisit() {
         reason_id: input.reasonId ?? null,
         appointment_id: input.appointmentId ?? null,
         notes: input.notes ?? null,
+        purchased: input.purchased ?? false,
+        purchase_total: input.purchased ? input.purchaseTotal ?? null : null,
+        purchase_at: input.purchased
+          ? input.purchaseAt ?? input.visitedAt
+          : null,
+        follow_up_id: followUpId,
       };
       const { data, error } = await supabase
         .from("visits")
-        .insert(row)
+        .insert(row as any)
         .select("*, visit_reasons(name, code)")
         .single();
       if (error) throw error;
@@ -107,6 +147,7 @@ export function useCreateVisit() {
     },
     onSuccess: (v) => {
       qc.invalidateQueries({ queryKey: ["visits"] });
+      qc.invalidateQueries({ queryKey: ["follow_ups"] });
       qc.invalidateQueries({ queryKey: ["consumer-timeline", v.consumerId] });
     },
   });
