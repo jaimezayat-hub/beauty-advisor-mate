@@ -710,7 +710,65 @@ export const SEED_PURCHASES: Purchase[] = [
   P("p-008", "c-012", "u-andrea", "ysl", daysAgo(45), [{ sku: "YSL-PUR-50", qty: 1 }, { sku: "YSL-MAS-01", qty: 1 }]),
   P("p-009", "c-015", "u-sofia", "lancome", daysAgo(35), [{ sku: "LAN-RNM-30", qty: 1 }]),
   P("p-010", "c-014", "u-andrea", "ysl", daysAgo(60), [{ sku: "YSL-MYS-100", qty: 1 }]),
+  ...generateHistoricalPurchases(),
 ];
+
+/**
+ * Genera historial de compras para Sofia y Andrea a lo largo de los últimos
+ * ~18 meses para que los dashboards no se vean vacíos al filtrar por periodo.
+ * Determinístico: usa una semilla simple para que cada build sea estable.
+ */
+function generateHistoricalPurchases(): Purchase[] {
+  const out: Purchase[] = [];
+  let seed = 1;
+  const rand = () => {
+    // mulberry32-ish determinista
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 0xffffffff;
+  };
+  const pick = <T,>(arr: T[]): T => arr[Math.floor(rand() * arr.length)];
+
+  const sofiaConsumers = ["c-001", "c-003", "c-005", "c-007", "c-008", "c-010", "c-011", "c-013", "c-015", "c-017", "c-019"];
+  const andreaConsumers = ["c-002", "c-012", "c-014", "c-016", "c-018", "c-020"];
+  const lancomeSkus = SEED_PRODUCTS.filter((p) => p.brand === "lancome").map((p) => p.sku);
+  const yslSkus = SEED_PRODUCTS.filter((p) => p.brand === "ysl").map((p) => p.sku);
+
+  const make = (
+    idx: number,
+    baId: "u-sofia" | "u-andrea",
+    brand: "lancome" | "ysl",
+    consumers: string[],
+    skus: string[],
+    daysBack: number,
+  ) => {
+    const lines = Array.from({ length: 1 + Math.floor(rand() * 3) }, () => ({
+      sku: pick(skus),
+      qty: 1 + Math.floor(rand() * 2),
+    }));
+    out.push(
+      P(
+        `p-hist-${baId === "u-sofia" ? "s" : "a"}-${idx}`,
+        pick(consumers),
+        baId,
+        brand,
+        daysAgo(daysBack),
+        lines,
+      ),
+    );
+  };
+
+  // Sofia: ~25 compras/mes durante 18 meses => 450
+  for (let i = 0; i < 450; i++) {
+    const daysBack = Math.floor(rand() * 540) + 1;
+    make(i, "u-sofia", "lancome", sofiaConsumers, lancomeSkus, daysBack);
+  }
+  // Andrea: ~10 compras/mes durante 18 meses => 180
+  for (let i = 0; i < 180; i++) {
+    const daysBack = Math.floor(rand() * 540) + 1;
+    make(i, "u-andrea", "ysl", andreaConsumers, yslSkus, daysBack);
+  }
+  return out;
+}
 
 export const SEED_APPOINTMENTS: Appointment[] = [
   {
