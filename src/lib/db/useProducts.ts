@@ -22,6 +22,8 @@ export function useProductsList(brand: Brand | "all", enabled = true) {
           name: p.name,
           brand: p.brand as Brand,
           category: cat,
+          subcategory: p.subcategory ?? undefined,
+          family: p.family ?? undefined,
           price: Number(p.price ?? 0),
           description: (p.attributes as any)?.description ?? "",
           benefits: ((p.attributes as any)?.benefits ?? []) as string[],
