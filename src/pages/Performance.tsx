@@ -211,19 +211,22 @@ function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { pro
   const fupsCompleted = liveKpis ? liveKpis.followupsCompleted : profile.followUpsCompleted;
   const fupsPending = liveKpis ? liveKpis.followupsPending : profile.followUpsPending;
 
+  const salesSpark = profile.history.map((w) => Math.max(1, w.sales));
+  const newSpark = profile.history.map((w) => Math.max(1, w.newConsumers));
+  const safeRecRate = recs > 0 ? Math.round((converted / recs) * 100) : 0;
   const cards: KpiCardProps[] = [
-    { focus: "ventas", icon: <DollarSign />, label: "Total vendido este mes", value: formatMoney(monthSales), hint: `Objetivo ${formatMoney(profile.monthlyTarget)}`, progress: targetPct, delta: `${growth >= 0 ? "+" : ""}${growth}% vs 4 sem. previas` },
-    { focus: "ventas", icon: <FileText />, label: "Transacciones", value: transactions.toString(), hint: "Registradas en app", delta: `${Math.max(0, transactions - 6)} sobre ritmo esperado` },
-    { focus: "ventas", icon: <TrendingUp />, label: "Ticket promedio", value: formatMoney(averageTicket), hint: "Por transacción", delta: "mix premium activo" },
-    { focus: "ventas", icon: <RefreshCw />, label: "Conversión reco. → venta", value: `${Math.round((converted / recs) * 100)}%`, hint: `${converted} de ${recs} recomendaciones`, progress: (converted / recs) * 100 },
-    { focus: "clienteling", icon: <UserPlus />, label: "Nuevas consumidores", value: `${newConsumers}/${profile.newConsumerTarget}`, hint: "Registros vs objetivo", progress: (newConsumers / profile.newConsumerTarget) * 100 },
-    { focus: "clienteling", icon: <FileText />, label: "Seguimientos", value: `${fupsCompleted}/${fupsCompleted + fupsPending}`, hint: "Completados vs pendientes", donut: [fupsCompleted, fupsPending] },
-    { focus: "clienteling", icon: <CalendarDays />, label: "Cumpleaños atendidos", value: `${profile.birthdaysContacted}/${profile.birthdaysTotal}`, hint: "Alertas del mes", progress: (profile.birthdaysContacted / profile.birthdaysTotal) * 100 },
-    { focus: "clienteling", icon: <RefreshCw />, label: "Reposiciones activadas", value: profile.replenishmentsActivated.toString(), hint: "Contactos en fecha", delta: "oportunidad de recompra" },
-    { focus: "adopcion", icon: <Smartphone />, label: "Días activa", value: `${profile.activeDays}/${profile.workDays}`, hint: "Días laborales del mes", progress: (profile.activeDays / profile.workDays) * 100 },
-    { focus: "adopcion", icon: <Trophy />, label: "Adopción", value: `${profile.adoptionScore}/100`, hint: "Actividad ponderada", progress: profile.adoptionScore },
+    { focus: "ventas", icon: <DollarSign />, label: "Total vendido", value: formatMoney(monthSales), hint: `Objetivo ${formatMoney(profile.monthlyTarget)}`, progress: targetPct, delta: `${growth >= 0 ? "+" : ""}${growth}% vs período previo`, spark: salesSpark },
+    { focus: "ventas", icon: <FileText />, label: "Transacciones", value: transactions.toString(), hint: "Compras registradas", spark: salesSpark },
+    { focus: "ventas", icon: <TrendingUp />, label: "Ticket promedio", value: formatMoney(averageTicket), hint: "Por transacción", spark: salesSpark.map((s, i) => Math.round(s / Math.max(1, profile.history[i]?.newConsumers || 1))) },
+    { focus: "ventas", icon: <RefreshCw />, label: "Conversión reco. → venta", value: recs > 0 ? `${safeRecRate}%` : "—", hint: recs > 0 ? `${converted} de ${recs}` : "Sin recomendaciones registradas", progress: safeRecRate },
+    { focus: "clienteling", icon: <UserPlus />, label: "Nuevas consumidoras", value: `${newConsumers}/${profile.newConsumerTarget}`, hint: "Registros vs objetivo", progress: (newConsumers / profile.newConsumerTarget) * 100, spark: newSpark },
+    { focus: "clienteling", icon: <FileText />, label: "Seguimientos", value: `${fupsCompleted}/${fupsCompleted + fupsPending}`, hint: "Completados vs pendientes", donut: [fupsCompleted, Math.max(0, fupsPending)] },
+    { focus: "clienteling", icon: <CalendarDays />, label: "Cumpleaños atendidos", value: profile.birthdaysTotal ? `${profile.birthdaysContacted}/${profile.birthdaysTotal}` : "—", hint: profile.birthdaysTotal ? "Alertas del período" : "Sin cumpleaños en período", progress: profile.birthdaysTotal ? (profile.birthdaysContacted / profile.birthdaysTotal) * 100 : 0 },
+    { focus: "clienteling", icon: <RefreshCw />, label: "Reposiciones activadas", value: profile.replenishmentsActivated.toString(), hint: "Muestras → compra", spark: newSpark },
+    { focus: "adopcion", icon: <Smartphone />, label: "Días activa", value: `${profile.activeDays}/${profile.workDays}`, hint: "Días laborales del período", progress: (profile.activeDays / profile.workDays) * 100, spark: salesSpark },
+    { focus: "adopcion", icon: <Trophy />, label: "Adopción", value: `${profile.adoptionScore}/100`, hint: "Actividad ponderada", progress: profile.adoptionScore, spark: salesSpark },
     { focus: "adopcion", icon: <CalendarDays />, label: "Citas", value: `${profile.appointmentsScheduled}/${profile.appointmentsCompleted}/${profile.appointmentsCancelled}`, hint: "Agendadas / completadas / canceladas" },
-    { focus: "adopcion", icon: <RefreshCw />, label: "Reagendadas / NoShow", value: `${apptStats.rescheduled} / ${apptStats.noShow}`, hint: "Citas reagendadas o sin asistencia (mes)" },
+    { focus: "adopcion", icon: <RefreshCw />, label: "Reagendadas / NoShow", value: `${apptStats.rescheduled} / ${apptStats.noShow}`, hint: "Citas reagendadas o sin asistencia" },
     { focus: "adopcion", icon: <Users />, label: "Ranking tienda", value: `#${profile.rank} de ${profile.rankTotal}`, hint: `Puesto #${profile.rank} de ${profile.rankTotal} BAs` },
   ];
 
@@ -378,14 +381,14 @@ function ApptHealthCard({ stats }: { stats: { total: number; rescheduled: number
   );
 }
 
-type KpiCardProps = { focus: KpiFocus; icon: React.ReactNode; label: string; value: string; hint: string; progress?: number; donut?: number[]; delta?: string; active?: boolean; onClick?: () => void };
-function KpiCard({ icon, label, value, hint, progress, donut, delta, active, onClick }: KpiCardProps) {
+type KpiCardProps = { focus: KpiFocus; icon: React.ReactNode; label: string; value: string; hint: string; progress?: number; donut?: number[]; delta?: string; spark?: number[]; active?: boolean; onClick?: () => void };
+function KpiCard({ icon, label, value, hint, progress, donut, delta, spark, active, onClick }: KpiCardProps) {
   return (
     <button type="button" onClick={onClick} className="text-left">
       <Card className={cn("p-5 h-full transition-colors duration-150", active ? "border-primary bg-primary/5" : "hover:border-primary/40")}>
         <div className="flex items-start justify-between gap-3">
           <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center [&_svg]:size-5">{icon}</div>
-          {donut ? <MiniDonut done={donut[0]} pending={donut[1]} /> : <Sparkline values={[22, 26, 24, 31, 34, 37, 42]} />}
+          {donut ? <MiniDonut done={donut[0]} pending={donut[1]} /> : <Sparkline values={spark && spark.length ? spark : [0, 0, 0, 0, 0, 0, 0]} />}
         </div>
         <p className="kpi-label mt-4">{label}</p>
         <p className="kpi-number mt-2 !text-3xl break-all">{value}</p>
