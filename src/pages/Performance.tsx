@@ -80,6 +80,77 @@ function periodLabelFromFilters(f: ReportFiltersValue): string {
   return map[f.preset];
 }
 
+function buildLocalProfiles(args: { users: User[]; purchases: Purchase[]; consumers: Consumer[]; recommendations: Recommendation[]; appointments: Appointment[]; followUps: FollowUp[]; samples: Sample[]; filters: ReportFiltersValue }): BaKpiProfile[] {
+  const { users, purchases, consumers, recommendations, appointments, followUps, samples, filters } = args;
+  const from = filters.from.getTime();
+  const to = filters.to.getTime();
+  const rangeMs = Math.max(86400000, to - from);
+  const previousFrom = from - rangeMs;
+  const baUsers = users.filter((u) => u.role === "ba");
+  const amountForCategory = (p: Purchase) => p.lines.reduce((sum, l) => {
+    const cat = l.category ?? categoryFromSku(l.sku);
+    return filters.category === "all" || cat === filters.category ? sum + l.qty * l.price : sum;
+  }, 0);
+  const inCurrent = (isoDate: string) => {
+    const t = new Date(isoDate).getTime();
+    return t >= from && t <= to;
+  };
+  const inPrevious = (isoDate: string) => {
+    const t = new Date(isoDate).getTime();
+    return t >= previousFrom && t < from;
+  };
+  const rangeDays = Math.max(1, Math.ceil(rangeMs / 86400000));
+  const workDays = countWeekdays(filters.from, filters.to);
+  const profiles = baUsers.map((ba) => {
+    const currentPurchases = purchases.filter((p) => p.baId === ba.id && inCurrent(p.date) && amountForCategory(p) > 0);
+    const previousPurchases = purchases.filter((p) => p.baId === ba.id && inPrevious(p.date) && amountForCategory(p) > 0);
+    const currentConsumers = consumers.filter((c) => c.assignedBaId === ba.id && inCurrent(c.createdAt));
+    const currentRecs = recommendations.filter((r) => r.baId === ba.id && inCurrent(r.date) && (filters.category === "all" || r.products.some((p) => categoryFromSku(p.sku) === filters.category)));
+    const currentFups = followUps.filter((f) => f.baId === ba.id && inCurrent(f.date));
+    const currentAppts = appointments.filter((a) => a.baId === ba.id && inCurrent(a.date));
+    const currentSamples = samples.filter((s) => s.baId === ba.id && inCurrent(s.date));
+    const periodSales = currentPurchases.reduce((s, p) => s + amountForCategory(p), 0);
+    const activeDates = new Set<string>();
+    currentPurchases.forEach((p) => activeDates.add(p.date.slice(0, 10)));
+    currentConsumers.forEach((c) => activeDates.add(c.createdAt.slice(0, 10)));
+    currentRecs.forEach((r) => activeDates.add(r.date.slice(0, 10)));
+    currentFups.forEach((f) => activeDates.add(f.date.slice(0, 10)));
+    currentAppts.forEach((a) => activeDates.add(a.date.slice(0, 10)));
+    const history = buildLocalHistory(ba.id, purchases, consumers, recommendations, filters, amountForCategory);
+    return {
+      baId: ba.id,
+      baName: ba.name,
+      storeId: ba.storeId,
+      brand: ba.brand,
+      periodSales,
+      previousSales: previousPurchases.reduce((s, p) => s + amountForCategory(p), 0),
+      transactions: currentPurchases.length,
+      periodNewConsumers: currentConsumers.length,
+      recommendationsTotal: currentRecs.length,
+      convertedRecommendationsTotal: currentRecs.filter((r) => r.converted).length,
+      monthlyTarget: Math.max(1, Math.round((250000 * rangeDays) / 30)),
+      newConsumerTarget: Math.max(1, Math.round((16 * rangeDays) / 30)),
+      activeDays: activeDates.size,
+      workDays,
+      followUpsCompleted: currentFups.filter((f) => f.status === "completado" || f.outcome === "Convirtió").length,
+      followUpsPending: currentFups.filter((f) => f.status !== "completado" && f.outcome !== "Convirtió").length,
+      birthdaysContacted: currentFups.filter((f) => f.type === "Cumpleaños" && f.status === "completado").length,
+      birthdaysTotal: currentFups.filter((f) => f.type === "Cumpleaños").length,
+      replenishmentsActivated: currentSamples.filter((s) => s.converted).length,
+      appointmentsScheduled: currentAppts.length,
+      appointmentsCompleted: currentAppts.filter((a) => a.status === "Completada").length,
+      appointmentsCancelled: currentAppts.filter((a) => a.status === "Cancelada").length,
+      adoptionScore: Math.min(100, Math.round((activeDates.size / Math.max(1, workDays)) * 70 + (currentFups.length ? 15 : 0) + (currentConsumers.length ? 15 : 0))),
+      rank: 1,
+      rankTotal: baUsers.length,
+      categorySales: categorySalesFromPurchases(currentPurchases),
+      history,
+    };
+  });
+  const ranked = profiles.sort((a, b) => (b.periodSales ?? 0) - (a.periodSales ?? 0));
+  return ranked.map((p, i) => ({ ...p, rank: i + 1, rankTotal: ranked.length }));
+}
+
 export default function Performance() {
   const user = useCurrentUser()!;
   const { users, stores, consumers, purchases, recommendations, appointments, followUps, samples, isRealSession } = useApp();
