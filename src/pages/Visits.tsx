@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConsumerPicker } from "@/components/clienteling/ConsumerPicker";
-import { Clock, UserCheck, Calendar as CalendarIcon } from "lucide-react";
+import { Clock, UserCheck, Calendar as CalendarIcon, ShoppingBag, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format";
@@ -54,6 +54,16 @@ export default function Visits() {
   const [durationMin, setDurationMin] = useState<number | "">(20);
   const [reasonId, setReasonId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState("");
+  // Compra durante la visita
+  const [purchased, setPurchased] = useState<boolean>(false);
+  const [purchaseTotal, setPurchaseTotal] = useState<number | "">("");
+  const [purchaseAt, setPurchaseAt] = useState<string>("");
+  // Seguimiento post-visita
+  const [followUpEnabled, setFollowUpEnabled] = useState<boolean>(true);
+  const [followUpDays, setFollowUpDays] = useState<number>(7);
+  const [followUpChannel, setFollowUpChannel] =
+    useState<"whatsapp" | "sms" | "email" | "call">("whatsapp");
+  const [followUpNotes, setFollowUpNotes] = useState("");
 
   useEffect(() => {
     if (consumer) return;
@@ -68,17 +78,41 @@ export default function Visits() {
       return;
     }
     try {
+      const followUpDueAt = followUpEnabled
+        ? new Date(
+            new Date(visitedAt).getTime() +
+              Math.max(1, followUpDays) * 24 * 60 * 60 * 1000,
+          ).toISOString()
+        : undefined;
       await createVisit.mutateAsync({
         consumerId: consumer.id,
         visitedAt: new Date(visitedAt).toISOString(),
         durationMin: durationMin === "" ? undefined : Number(durationMin),
         reasonId,
         notes: notes || undefined,
+        purchased,
+        purchaseTotal:
+          purchased && purchaseTotal !== "" ? Number(purchaseTotal) : undefined,
+        purchaseAt:
+          purchased && purchaseAt
+            ? new Date(purchaseAt).toISOString()
+            : undefined,
+        followUp: followUpDueAt
+          ? {
+              dueAt: followUpDueAt,
+              channel: followUpChannel,
+              notes: followUpNotes || undefined,
+            }
+          : undefined,
       });
       toast.success("Visita registrada");
       // limpia para nuevo registro
       setNotes("");
       setVisitedAt(nowLocalInput());
+      setPurchased(false);
+      setPurchaseTotal("");
+      setPurchaseAt("");
+      setFollowUpNotes("");
       // mantén el consumidor si vino por preselección, si no, límpialo
       if (!preselectId) setConsumer(null);
       // limpia el query param para evitar relock
