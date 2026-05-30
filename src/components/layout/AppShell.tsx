@@ -13,6 +13,7 @@ import {
   Search,
   ShoppingBag,
   Sparkles,
+  BookOpen,
   Users,
   WifiOff,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const NAV = [
   { to: "/", label: "Inicio", icon: Home, end: true },
   { to: "/consumidores", label: "Consumidores", icon: Users },
   { to: "/recomendaciones", label: "Recomendaciones", icon: Sparkles },
+  { to: "/catalogo", label: "Catálogo", icon: BookOpen },
   { to: "/compras", label: "Compras", icon: ShoppingBag },
   { to: "/agenda", label: "Agenda", icon: Calendar },
   { to: "/seguimiento", label: "Seguimiento", icon: MessageCircle },

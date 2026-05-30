@@ -184,6 +184,8 @@ export interface Product {
   name: string;
   brand: Brand;
   category: "Skincare" | "Makeup" | "Fragancia";
+  subcategory?: string;
+  family?: string;
   price: number;
   description: string;
   benefits: string[];
