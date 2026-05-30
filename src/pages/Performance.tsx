@@ -47,9 +47,9 @@ import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
 import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
-import type { BaKpiProfile, User } from "@/lib/types";
+import type { Appointment, BaKpiProfile, Consumer, FollowUp, Purchase, Recommendation, Sample, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
-import { usePerformanceKpis, useTopProducts, type KpiPeriod, type KpiSummary } from "@/lib/db/usePerformance";
+import { usePerformanceKpis, useTopProducts, type KpiPeriod, type KpiSummary, type TopProductRow } from "@/lib/db/usePerformance";
 import {
   ReportFilters,
   defaultFilters,
@@ -82,7 +82,7 @@ function periodLabelFromFilters(f: ReportFiltersValue): string {
 
 export default function Performance() {
   const user = useCurrentUser()!;
-  const { users, baKpis, stores, appointments, isRealSession } = useApp();
+  const { users, stores, consumers, purchases, recommendations, appointments, followUps, samples, isRealSession } = useApp();
   const [filters, setFilters] = useState<ReportFiltersValue>(() => defaultFilters());
   const category = filters.category as Category;
   const period = presetToPeriod(filters.preset);
@@ -94,7 +94,7 @@ export default function Performance() {
     storeId: filters.storeId,
     category,
   });
-  const { data: topProducts } = useTopProducts(isRealSession, period, {
+  const { data: liveTopProducts } = useTopProducts(isRealSession, period, {
     from: filters.from.toISOString(),
     to: filters.to.toISOString(),
     brand: filters.brand,
@@ -108,7 +108,12 @@ export default function Performance() {
   const scope = getScope(user);
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
   const regions = Array.from(new Set(stores.map((s) => s.region)));
-  const sourceProfiles = isRealSession ? liveKpis?.profiles ?? [] : baKpis;
+  const seedProfiles = useMemo(
+    () => buildLocalProfiles({ users, purchases, consumers, recommendations, appointments, followUps, samples, filters }),
+    [users, purchases, consumers, recommendations, appointments, followUps, samples, filters],
+  );
+  const sourceProfiles = isRealSession ? liveKpis?.profiles ?? [] : seedProfiles;
+  const topProducts = isRealSession ? liveTopProducts ?? [] : buildLocalTopProducts(purchases, filters, 8);
   const baseProfiles = sourceProfiles.filter((k) => {
     const u = users.find((x) => x.id === k.baId);
     const storeId = u?.storeId ?? k.storeId ?? "";
