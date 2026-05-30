@@ -434,6 +434,54 @@ export default function ConsumerProfile() {
                 )}
               </TabsContent>
 
+              <TabsContent value="visitas" className="mt-0">
+                {myVisits.length === 0 ? (
+                  <div className="space-y-4">
+                    <EmptyTab text="Sin visitas registradas." icon={<Clock className="size-5" />} />
+                    <div className="text-center">
+                      <Button asChild size="sm" variant="outline">
+                        <Link to={`/visitas?consumerId=${c.id}`}>
+                          <UserCheck className="size-3.5 mr-1.5" /> Registrar visita
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <ul className="divide-y divide-border">
+                      {myVisits.map((v) => (
+                        <li key={v.id} className="py-3">
+                          <div className="flex justify-between text-sm gap-3">
+                            <div className="min-w-0">
+                              <p className="font-medium">{v.reasonName ?? "Visita"}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {formatDateTime(v.visitedAt)}
+                                {v.durationMin ? ` · ${v.durationMin} min` : ""}
+                                {" · "}
+                                {users.find((u) => u.id === v.baId)?.name ?? "BA"}
+                              </p>
+                              {v.notes && (
+                                <p className="text-xs text-muted-foreground mt-1 whitespace-pre-line">
+                                  {v.notes}
+                                </p>
+                              )}
+                            </div>
+                            <Clock className="size-4 text-muted-foreground shrink-0 mt-0.5" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-4">
+                      <Button asChild size="sm" variant="outline">
+                        <Link to={`/visitas?consumerId=${c.id}`}>
+                          <UserCheck className="size-3.5 mr-1.5" /> Registrar nueva visita
+                        </Link>
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+
               <TabsContent value="comunicaciones" className="mt-0">
                 {myMessages.length === 0 ? (
                   <EmptyTab
