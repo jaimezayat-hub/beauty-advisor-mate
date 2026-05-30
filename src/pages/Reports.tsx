@@ -80,16 +80,21 @@ export default function Reports() {
     isRealSession,
   } = useApp();
 
-  const dbConsumers = useConsumersList({}, isRealSession);
-  const dbPurchases = usePurchasesList({}, isRealSession);
-  const dbAppts = useAppointmentsList({}, isRealSession);
-  const dbFollowUps = useFollowUpsList(isRealSession);
-  const dbVisits = useVisitsList(
-    user.role === "ba"
-      ? { baId: user.id, limit: 500 }
-      : { storeId: user.storeId, limit: 500 },
-    isRealSession,
-  );
+  const scope = getScope(user);
+  const [filters, setFilters] = useState<ReportFiltersValue>(defaultFilters);
+  const queryFilters = {
+    brand: filters.brand,
+    baId: filters.baId,
+    storeId: filters.storeId,
+    from: filters.from.toISOString(),
+    to: filters.to.toISOString(),
+  };
+
+  const dbConsumers = useConsumersList(queryFilters, isRealSession);
+  const dbPurchases = usePurchasesList(queryFilters, isRealSession);
+  const dbAppts = useAppointmentsList(queryFilters, isRealSession);
+  const dbFollowUps = useFollowUpsList(queryFilters, isRealSession);
+  const dbVisits = useVisitsList({ ...queryFilters, limit: 500 }, isRealSession);
 
   const allConsumers = isRealSession ? (dbConsumers.data ?? []) : seedConsumers;
   const allPurchases = isRealSession ? (dbPurchases.data ?? []) : seedPurchases;
@@ -97,13 +102,11 @@ export default function Reports() {
   const allFollowUps = isRealSession ? (dbFollowUps.data ?? []) : seedFollowUps;
   const allVisits = isRealSession ? (dbVisits.data ?? []) : [];
 
-  const scope = getScope(user);
   const regions = useMemo(
     () => Array.from(new Set(stores.map((s) => s.region))).sort(),
     [stores],
   );
 
-  const [filters, setFilters] = useState<ReportFiltersValue>(defaultFilters);
   const goals = useReportGoals(
     {
       brand: filters.brand,
@@ -134,15 +137,22 @@ export default function Reports() {
     let bas: { id: string; name: string; brand: string; storeId: string }[] = [];
     if (isRealSession) {
       const byId = new Map<string, (typeof bas)[number]>();
-      for (const c of allConsumers) {
-        if (!c.assignedBaId || byId.has(c.assignedBaId)) continue;
-        byId.set(c.assignedBaId, {
-          id: c.assignedBaId,
-          name: `BA · ${c.brand === "ysl" ? "YSL" : "Lancôme"} · ${c.storeId.split("-").pop() ?? ""}`,
-          brand: c.brand,
-          storeId: c.storeId,
+      const addBa = (id: string, brand: string, storeId: string) => {
+        if (!id || byId.has(id)) return;
+        const known = users.find((u) => u.id === id);
+        byId.set(id, {
+          id,
+          name: known?.name ?? `BA · ${brand === "ysl" ? "YSL" : "Lancôme"} · ${storeId.split("-").pop() ?? ""}`,
+          brand: known?.brand ?? brand,
+          storeId: known?.storeId ?? storeId,
         });
+      };
+      for (const c of allConsumers) {
+        addBa(c.assignedBaId, c.brand, c.storeId);
       }
+      allPurchases.forEach((p) => addBa(p.baId, p.brand, p.storeId));
+      allAppointments.forEach((a) => addBa(a.baId, user.brand, a.storeId));
+      allVisits.forEach((v) => addBa(v.baId, v.brand, v.storeId));
       bas = Array.from(byId.values());
     } else {
       bas = users
@@ -161,15 +171,7 @@ export default function Reports() {
       if (scope.kind === "region" && storeIdToRegion[b.storeId] !== scope.region) return false;
       return true;
     });
-  }, [
-    isRealSession,
-    allConsumers,
-    users,
-    filters,
-    storeIdToChain,
-    storeIdToRegion,
-    scope,
-  ]);
+  }, [isRealSession, allConsumers, allPurchases, allAppointments, allVisits, users, filters, storeIdToChain, storeIdToRegion, scope, user.brand]);
 
   const visibleBaIds = useMemo(() => new Set(visibleBas.map((b) => b.id)), [visibleBas]);
 
@@ -208,11 +210,14 @@ export default function Reports() {
 
   const purchases = useMemo(
     () =>
-      allPurchases.filter(
-        (p) =>
-          passesScope({ baId: p.baId, storeId: p.storeId, brand: p.brand }) &&
-          inDateRange(p.date),
-      ),
+      allPurchases
+        .filter(
+          (p) =>
+            passesScope({ baId: p.baId, storeId: p.storeId, brand: p.brand }) &&
+            inDateRange(p.date),
+        )
+        .map((p) => applyCategoryToPurchase(p, filters.category))
+        .filter((p) => p.total > 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [allPurchases, filters, scope],
   );
@@ -642,6 +647,22 @@ export default function Reports() {
 
 function stamp() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function applyCategoryToPurchase(purchase: Purchase, category: ReportFiltersValue["category"]): Purchase {
+  if (category === "all") return purchase;
+  const lines = purchase.lines.filter((line) => {
+    const lineCategory = line.category ?? categoryFromSku(line.sku);
+    return lineCategory === category;
+  });
+  const total = lines.reduce((sum, line) => sum + line.price * line.qty, 0);
+  return { ...purchase, lines, total };
+}
+
+function categoryFromSku(sku: string): ReportFiltersValue["category"] {
+  if (/AGV|RNM|PUR/i.test(sku)) return "Skincare";
+  if (/LAV|IDO|LIB|MYS/i.test(sku)) return "Fragancia";
+  return "Makeup";
 }
 
 function fallbackTarget(filters: ReportFiltersValue, baCount: number) {

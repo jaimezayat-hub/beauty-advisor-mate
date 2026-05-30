@@ -192,6 +192,8 @@ export function mapPurchase(p: DbPurchase, items: DbPurchaseItem[] = []): Purcha
     name: it.name_snapshot,
     qty: it.qty,
     price: Number(it.unit_price ?? 0),
+    productId: it.product_id ?? undefined,
+    category: normalizeCategory((it as any).products?.category),
   }));
   return {
     id: p.id,
@@ -204,6 +206,14 @@ export function mapPurchase(p: DbPurchase, items: DbPurchaseItem[] = []): Purcha
     total: Number(p.total ?? 0),
     ticketNumber: p.ticket_number ?? undefined,
   };
+}
+
+function normalizeCategory(value: string | null | undefined): PurchaseLine["category"] | undefined {
+  const v = (value ?? "").toLowerCase();
+  if (v.includes("skin") || v.includes("tratamiento")) return "Skincare";
+  if (v.includes("frag") || v.includes("perfume")) return "Fragancia";
+  if (v.includes("make") || v.includes("maquillaje")) return "Makeup";
+  return undefined;
 }
 
 // ============================================================

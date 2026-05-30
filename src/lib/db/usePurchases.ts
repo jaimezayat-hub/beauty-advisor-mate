@@ -9,6 +9,7 @@ export const purchasesKey = (filters?: unknown) =>
 export interface PurchasesFilter {
   brand?: Brand | "all";
   baId?: string | "all";
+  storeId?: string | "all";
   from?: string;
   to?: string;
   consumerId?: string;
@@ -21,16 +22,17 @@ export function usePurchasesList(filters: PurchasesFilter, enabled = true) {
     queryFn: async (): Promise<Purchase[]> => {
       let q = supabase
         .from("purchases")
-        .select("*, purchase_items(*)")
+        .select("*, purchase_items(*, products(category))")
         .is("deleted_at", null)
         .order("purchased_at", { ascending: false })
         .limit(500);
       if (filters.brand && filters.brand !== "all")
         q = q.eq("brand", filters.brand);
       if (filters.baId && filters.baId !== "all") q = q.eq("ba_id", filters.baId);
+      if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
       if (filters.consumerId) q = q.eq("consumer_id", filters.consumerId);
       if (filters.from) q = q.gte("purchased_at", filters.from);
-      if (filters.to) q = q.lte("purchased_at", filters.to + "T23:59:59");
+      if (filters.to) q = q.lte("purchased_at", filters.to.includes("T") ? filters.to : `${filters.to}T23:59:59`);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []).map((p: any) => mapPurchase(p, p.purchase_items ?? []));

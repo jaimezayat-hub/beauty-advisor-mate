@@ -26,8 +26,11 @@ export function useVisitReasons(enabled = true) {
 }
 
 export interface VisitsFilter {
-  baId?: string;
-  storeId?: string;
+  baId?: string | "all";
+  storeId?: string | "all";
+  brand?: Brand | "all";
+  from?: string;
+  to?: string;
   consumerId?: string;
   limit?: number;
 }
@@ -48,8 +51,11 @@ export function useVisitsList(filters: VisitsFilter, enabled = true) {
         )
         .order("visited_at", { ascending: false })
         .limit(filters.limit ?? 50);
-      if (filters.baId) q = q.eq("ba_id", filters.baId);
-      if (filters.storeId) q = q.eq("store_id", filters.storeId);
+      if (filters.baId && filters.baId !== "all") q = q.eq("ba_id", filters.baId);
+      if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
+      if (filters.brand && filters.brand !== "all") q = q.eq("brand", filters.brand);
+      if (filters.from) q = q.gte("visited_at", filters.from);
+      if (filters.to) q = q.lte("visited_at", filters.to);
       if (filters.consumerId) q = q.eq("consumer_id", filters.consumerId);
       const { data, error } = await q;
       if (error) throw error;
