@@ -403,5 +403,10 @@ export function mapVisit(
     reasonCode: reason?.code,
     appointmentId: v.appointment_id ?? undefined,
     notes: v.notes ?? undefined,
+    purchased: (v as any).purchased ?? false,
+    purchaseTotal:
+      (v as any).purchase_total != null ? Number((v as any).purchase_total) : undefined,
+    purchaseAt: (v as any).purchase_at ?? undefined,
+    followUpId: (v as any).follow_up_id ?? undefined,
   };
 }

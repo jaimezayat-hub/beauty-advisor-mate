@@ -151,6 +151,12 @@ export interface Visit {
   reasonCode?: string;
   appointmentId?: string;
   notes?: string;
+  /** RF — registro de compra ligada a la visita */
+  purchased?: boolean;
+  purchaseTotal?: number;
+  purchaseAt?: string;
+  /** Seguimiento post-visita generado al registrar la visita */
+  followUpId?: string;
 }
 
 export interface PrivacyConsent {

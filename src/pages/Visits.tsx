@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConsumerPicker } from "@/components/clienteling/ConsumerPicker";
-import { Clock, UserCheck, Calendar as CalendarIcon } from "lucide-react";
+import { Clock, UserCheck, Calendar as CalendarIcon, ShoppingBag, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/format";
@@ -54,6 +54,16 @@ export default function Visits() {
   const [durationMin, setDurationMin] = useState<number | "">(20);
   const [reasonId, setReasonId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState("");
+  // Compra durante la visita
+  const [purchased, setPurchased] = useState<boolean>(false);
+  const [purchaseTotal, setPurchaseTotal] = useState<number | "">("");
+  const [purchaseAt, setPurchaseAt] = useState<string>("");
+  // Seguimiento post-visita
+  const [followUpEnabled, setFollowUpEnabled] = useState<boolean>(true);
+  const [followUpDays, setFollowUpDays] = useState<number>(7);
+  const [followUpChannel, setFollowUpChannel] =
+    useState<"whatsapp" | "sms" | "email" | "call">("whatsapp");
+  const [followUpNotes, setFollowUpNotes] = useState("");
 
   useEffect(() => {
     if (consumer) return;
@@ -68,17 +78,41 @@ export default function Visits() {
       return;
     }
     try {
+      const followUpDueAt = followUpEnabled
+        ? new Date(
+            new Date(visitedAt).getTime() +
+              Math.max(1, followUpDays) * 24 * 60 * 60 * 1000,
+          ).toISOString()
+        : undefined;
       await createVisit.mutateAsync({
         consumerId: consumer.id,
         visitedAt: new Date(visitedAt).toISOString(),
         durationMin: durationMin === "" ? undefined : Number(durationMin),
         reasonId,
         notes: notes || undefined,
+        purchased,
+        purchaseTotal:
+          purchased && purchaseTotal !== "" ? Number(purchaseTotal) : undefined,
+        purchaseAt:
+          purchased && purchaseAt
+            ? new Date(purchaseAt).toISOString()
+            : undefined,
+        followUp: followUpDueAt
+          ? {
+              dueAt: followUpDueAt,
+              channel: followUpChannel,
+              notes: followUpNotes || undefined,
+            }
+          : undefined,
       });
       toast.success("Visita registrada");
       // limpia para nuevo registro
       setNotes("");
       setVisitedAt(nowLocalInput());
+      setPurchased(false);
+      setPurchaseTotal("");
+      setPurchaseAt("");
+      setFollowUpNotes("");
       // mantén el consumidor si vino por preselección, si no, límpialo
       if (!preselectId) setConsumer(null);
       // limpia el query param para evitar relock
@@ -166,6 +200,167 @@ export default function Visits() {
             />
           </div>
 
+          {/* Resultado de la visita: compra */}
+          <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="size-4 text-primary" />
+                <Label className="m-0">¿Hubo compra?</Label>
+              </div>
+              <div className="flex gap-1.5">
+                {[
+                  { v: true, l: "Sí" },
+                  { v: false, l: "No" },
+                ].map((o) => (
+                  <button
+                    key={String(o.v)}
+                    type="button"
+                    onClick={() => setPurchased(o.v)}
+                    className={cn(
+                      "text-xs px-3 py-1 rounded-full border transition",
+                      purchased === o.v
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border hover:border-primary/40",
+                    )}
+                  >
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {purchased && (
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <Label className="text-xs">Monto (MXN)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={purchaseTotal}
+                    onChange={(e) =>
+                      setPurchaseTotal(
+                        e.target.value === "" ? "" : Number(e.target.value),
+                      )
+                    }
+                    placeholder="0.00"
+                    className="h-10 mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Fecha de compra</Label>
+                  <Input
+                    type="datetime-local"
+                    value={purchaseAt || visitedAt}
+                    onChange={(e) => setPurchaseAt(e.target.value)}
+                    className="h-10 mt-1.5"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Seguimiento post-visita */}
+          <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="size-4 text-primary" />
+                <Label className="m-0">Programar seguimiento post-visita</Label>
+              </div>
+              <div className="flex gap-1.5">
+                {[
+                  { v: true, l: "Sí" },
+                  { v: false, l: "No" },
+                ].map((o) => (
+                  <button
+                    key={String(o.v)}
+                    type="button"
+                    onClick={() => setFollowUpEnabled(o.v)}
+                    className={cn(
+                      "text-xs px-3 py-1 rounded-full border transition",
+                      followUpEnabled === o.v
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border hover:border-primary/40",
+                    )}
+                  >
+                    {o.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {followUpEnabled && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Contactar en (días)</Label>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {[3, 7, 15, 30].map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setFollowUpDays(d)}
+                          className={cn(
+                            "text-xs px-2.5 py-1 rounded-full border transition",
+                            followUpDays === d
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border hover:border-primary/40",
+                          )}
+                        >
+                          {d}d
+                        </button>
+                      ))}
+                      <Input
+                        type="number"
+                        min={1}
+                        value={followUpDays}
+                        onChange={(e) =>
+                          setFollowUpDays(Math.max(1, Number(e.target.value) || 1))
+                        }
+                        className="h-8 w-20 text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Canal</Label>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {(
+                        [
+                          { v: "whatsapp", l: "WhatsApp" },
+                          { v: "call", l: "Llamada" },
+                          { v: "email", l: "Email" },
+                          { v: "sms", l: "SMS" },
+                        ] as const
+                      ).map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setFollowUpChannel(o.v)}
+                          className={cn(
+                            "text-xs px-2.5 py-1 rounded-full border transition",
+                            followUpChannel === o.v
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border hover:border-primary/40",
+                          )}
+                        >
+                          {o.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Nota para el seguimiento</Label>
+                  <Textarea
+                    value={followUpNotes}
+                    onChange={(e) => setFollowUpNotes(e.target.value)}
+                    placeholder="Qué preguntar / recordar (ej. uso del sérum, reposición de muestra…)"
+                    className="mt-1.5"
+                    rows={2}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
           <div className="flex justify-end gap-2">
             <Button asChild variant="ghost">
               <Link to="/agenda">Volver a agenda</Link>
@@ -209,6 +404,25 @@ export default function Visits() {
                         {v.reasonName ? ` · ${v.reasonName}` : ""}
                         {v.durationMin ? ` · ${v.durationMin} min` : ""}
                       </p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {v.purchased ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/15 text-success">
+                            Compró
+                            {v.purchaseTotal != null
+                              ? ` · $${v.purchaseTotal.toLocaleString("es-MX")}`
+                              : ""}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            Sin compra
+                          </span>
+                        )}
+                        {v.followUpId && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                            Seguimiento programado
+                          </span>
+                        )}
+                      </div>
                       {v.notes && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {v.notes}
