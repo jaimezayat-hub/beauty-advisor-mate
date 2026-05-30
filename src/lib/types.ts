@@ -236,6 +236,12 @@ export interface BaKpiProfile {
   baName?: string;
   storeId?: string;
   brand?: Brand;
+  periodSales?: number;
+  previousSales?: number;
+  transactions?: number;
+  periodNewConsumers?: number;
+  recommendationsTotal?: number;
+  convertedRecommendationsTotal?: number;
   monthlyTarget: number;
   newConsumerTarget: number;
   activeDays: number;
