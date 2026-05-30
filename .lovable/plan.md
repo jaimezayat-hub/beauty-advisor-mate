@@ -1,66 +1,42 @@
-## Resumen de tu pregunta
+## Objetivo
 
-**1) "Reporte Gerente — Tabla comparativa de BAs": ya lo tienes.**
-Está en `/reportes` → pestaña **"Desempeño BA"** (`Reports.tsx`, tab `ba`). Es una tabla con BA / Marca / Transacciones / Total MXN / Nuevos / Seguimientos / Recomendaciones / Adopción (semáforo Alta/Media/Baja) + botón de exportar a CSV. ✅ No hay que volver a construirla.
+Hoy existe **Agenda** (programar citas futuras) pero falta poder **registrar una visita ya ocurrida** y que quede en el historial de la consumidora. La tabla `visits` y `visit_reasons` ya están creadas en el backend pero sin UI.
 
-**2) Los filtros de período no mueven datos: bug confirmado.**
-Encontré dos causas distintas:
+## Alcance
 
-- En **`/desempeño` (Mi Desempeño)**: el `useState("Este mes")` solo se usa para mostrar el chip en el hero. Los KPIs vienen de `usePerformanceKpis()` que está hardcoded a `startOfMonthISO()` (inicio del mes actual). Cambiar "Esta semana / Este mes / Últimos 3 meses" no recalcula nada.
-- En **`/reportes`**: los chips Hoy/Semana/Mes/Trimestre **sí filtran client-side**, pero la base tiene poca distribución temporal (todas las compras caen entre nov‑2025 y may‑2026, las citas y follow‑ups arrancan en mar‑2026), así que "Hoy" suele dar 0 y "Mes/Trimestre" se ven casi iguales → da la sensación de que no se mueven.
+1. **Nueva entrada en el menú lateral**: "Registrar visita" (icono `UserCheck`), ruta `/visitas`. Visible para BA y gerentes (no admin/zona).
+2. **Página `/visitas`** con dos secciones:
+   - **Formulario de registro**: ConsumerPicker + fecha/hora (default: ahora) + motivo (chips desde `visit_reasons`) + duración en minutos + notas + (opcional) vincular con una cita existente del día.
+   - **Listado reciente**: últimas visitas registradas por el BA / tienda (según rol), con consumidor, motivo, fecha y duración.
+3. **Persistencia real** en la tabla `visits` (ya tiene RLS por scope BA/tienda/zona).
+4. **Historial en el perfil de la consumidora**: las visitas registradas aparecen en el timeline de `ConsumerProfile` junto a compras, citas y mensajes.
+5. **Atajo contextual**: botón "Registrar visita" en `ConsumerProfile` que abre el formulario con la consumidora pre-seleccionada (`/visitas?consumerId=…`).
 
-**3) Llenar la base con datos suficientes** para que los filtros muestren variación real.
+## Detalles técnicos
 
----
+- **Hook nuevo** `src/lib/db/useVisits.ts`:
+  - `useVisitReasonsList()` — lee `visit_reasons` activos.
+  - `useVisitsList({ scope, baId, storeId })` — lista visitas filtradas, JOIN con `visit_reasons` y `consumers` (nombre).
+  - `useConsumerVisits(consumerId)` — visitas de una consumidora (para el timeline).
+  - `useCreateVisit()` — inserta en `visits` con `brand`, `store_id`, `ba_id` desde el perfil del usuario; invalida `["visits"]` y `["consumer-timeline", consumerId]`.
+- **Tipo nuevo** `Visit` en `src/lib/types.ts`: `{ id, consumerId, baId, storeId, brand, visitedAt, durationMin?, reasonId?, reasonName?, appointmentId?, notes? }`.
+- **Mapper** en `src/lib/db/mappers.ts`: `mapVisit(row, reason?)`.
+- **Página nueva** `src/pages/Visits.tsx` con el formulario + lista reciente. Reusa `ConsumerPicker`, `PageHeader`, `Card`, `Input`, `Textarea`, chips para motivos, `Calendar` shadcn para fecha.
+- **Sidebar** (`AppShell.tsx`): añadir entrada justo después de "Agenda" con icono `UserCheck` y permitirla en `canAccessRoute` para BA y gerentes.
+- **Ruta** en `App.tsx`: `/visitas` → `Visits`.
+- **Timeline** (`useConsumers.ts`): extender `useConsumerTimeline` para traer `visits` (con join a `visit_reasons`) y devolver `visits: Visit[]`.
+- **ConsumerProfile**: agregar sección "Visitas registradas" en el timeline + botón "Registrar visita" en el header del perfil.
 
-## Plan
+## Permisos / RLS
 
-### A. Arreglar el filtro de período en `/desempeño`
-Archivo: `src/pages/Performance.tsx` + `src/lib/db/usePerformance.ts`.
+La tabla `visits` ya tiene:
+- INSERT: BA sobre sí mismo en su tienda, store manager en su tienda, central admin.
+- SELECT/UPDATE: por `can_access_scope(store_id, ba_id)`.
 
-1. Cambiar `usePerformanceKpis(enabled)` a `usePerformanceKpis(enabled, period)` que reciba `"semana" | "mes" | "trimestre"` y elija qué vistas/fechas usar:
-   - `semana` → sumar los últimos 7 días desde `purchases`, `consumers`, `follow_ups`, `appointments`, `sample_deliveries` directos (las vistas mensuales no sirven para semana).
-   - `mes` → seguir usando las vistas `v_*_by_ba_month` con el mes actual.
-   - `trimestre` → sumar los últimos 3 meses de las mismas vistas.
-2. En `Performance.tsx`, mapear el string visible (`"Esta semana"`, etc.) a la clave y pasarla al hook. Re-render automático vía React Query (key incluye el período).
-3. Quitar "Personalizado" por ahora (o dejarlo deshabilitado) para no prometer lo que no entrega.
+No requiere migración.
 
-### B. Asegurar que `/reportes` reaccione visiblemente
-Archivo: `src/pages/Reports.tsx`.
+## Fuera de alcance
 
-1. El filtrado client-side ya está correcto. Sólo añadir un indicador "Mostrando X transacciones del período seleccionado" arriba de los KPIs para que sea evidente que el chip cambió algo.
-2. Mantener el cap de 500 filas del query (suficiente con el seed extendido).
-
-### C. Sembrar la base con datos realistas (vía migración con `INSERT`)
-Una sola migración que añada datos sin tocar lo existente:
-
-- **Tiendas y regiones**: si faltan, garantizar 4–6 tiendas en 2–3 regiones.
-- **Profiles + user_roles**: 6–8 BAs sintéticos distribuidos entre tiendas (sólo `profiles`, no `auth.users` — usaremos los `owner_ba_id` ya presentes en consumers para mantener compatibilidad con RLS de lectura).
-- **Consumers**: subir a ~150 total, con `created_at` distribuido en los últimos 9 meses.
-- **Purchases + purchase_items**: ~600 compras con `purchased_at` distribuido día por día desde hace 120 días (incluyendo varias de "hoy" y de "esta semana") para que cada chip Hoy/Semana/Mes/Trimestre dé un número distinto.
-- **Appointments**: ~120, con mezcla de pasadas (completadas/canceladas/no-show) y futuras (próximas 4 semanas), distribuidas día a día.
-- **Follow_ups**: ~200, mezcla de `pending` y `completado`, con `due_at` y `completed_at` distribuidos.
-- **Sample_deliveries**: ~80 con `delivered_at` últimos 90 días, ~20 con `converted_purchase_id` apuntando a una compra existente.
-- **Goals + goal_assignments**: una meta de venta mensual por BA y una a nivel tienda para que el "Avance a objetivo" tenga referencia real.
-
-Toda la siembra usa `gen_random_uuid()` + `INSERT … SELECT` con `generate_series` para distribuir fechas. Idempotente: condicionada a `NOT EXISTS` por (consumer + fecha) o tag de fuente.
-
-### D. Verificación
-1. Abrir `/reportes`: clic en Hoy → Semana → Mes → Trimestre, los seis KPIs cambian.
-2. Abrir `/desempeño`: clic en Esta semana → Este mes → Últimos 3 meses, "Total vendido" y "Transacciones" cambian.
-3. Abrir tab "Desempeño BA" en `/reportes`: confirmar que cada BA tiene número distinto y el semáforo de Adopción muestra los tres colores.
-
----
-
-## Detalle técnico clave
-
-```text
-usePerformanceKpis(enabled, period)
-  ├─ semana   → SELECT sum(...) FROM purchases WHERE purchased_at >= now() - 7d
-  ├─ mes      → v_sales_by_ba_month (mes en curso)  ← actual comportamiento
-  └─ trimestre→ v_sales_by_ba_month WHERE month >= date_trunc('month', now()) - 2 months
-```
-
-Migración de siembra: ~6 `INSERT … SELECT generate_series(0, N) i` con `now() - (i || ' days')::interval` para spread temporal; `random()` para mezclar BAs, tiendas y totales realistas (1 200 – 8 500 MXN por compra).
-
-¿Quieres que también añada el filtro "Personalizado" con date-range picker, o lo dejo para después?
+- Editar/eliminar visitas (sólo registrar y consultar en esta iteración).
+- Métricas de visitas en Desempeño/Reportes (se puede sumar después).
+- Convertir visita en venta directamente (ya existe el flujo de Compras).
