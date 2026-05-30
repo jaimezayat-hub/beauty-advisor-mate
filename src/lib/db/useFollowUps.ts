@@ -13,10 +13,12 @@ export interface FollowUpsFilter {
   to?: string;
 }
 
-export function useFollowUpsList(filters: FollowUpsFilter = {}, enabled = true) {
+export function useFollowUpsList(filtersOrEnabled: FollowUpsFilter | boolean = {}, enabled = true) {
+  const filters = typeof filtersOrEnabled === "boolean" ? {} : filtersOrEnabled;
+  const isEnabled = typeof filtersOrEnabled === "boolean" ? filtersOrEnabled : enabled;
   return useQuery({
     queryKey: followUpsKey(filters),
-    enabled,
+    enabled: isEnabled,
     queryFn: async (): Promise<FollowUp[]> => {
       let q = supabase
         .from("follow_ups")
