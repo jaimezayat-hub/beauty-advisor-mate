@@ -151,6 +151,77 @@ function buildLocalProfiles(args: { users: User[]; purchases: Purchase[]; consum
   return ranked.map((p, i) => ({ ...p, rank: i + 1, rankTotal: ranked.length }));
 }
 
+function buildLocalHistory(baId: string, purchases: Purchase[], consumers: Consumer[], recommendations: Recommendation[], filters: ReportFiltersValue, amountForCategory: (p: Purchase) => number) {
+  return Array.from({ length: 8 }, (_, idx) => {
+    const end = new Date(filters.to);
+    end.setDate(end.getDate() - (7 - idx) * 7);
+    end.setHours(23, 59, 59, 999);
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+    const inWeek = (isoDate: string) => {
+      const t = new Date(isoDate).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    };
+    const p = purchases.filter((row) => row.baId === baId && inWeek(row.date) && amountForCategory(row) > 0);
+    const c = consumers.filter((row) => row.assignedBaId === baId && inWeek(row.createdAt));
+    const r = recommendations.filter((row) => row.baId === baId && inWeek(row.date) && (filters.category === "all" || row.products.some((x) => categoryFromSku(x.sku) === filters.category)));
+    return {
+      week: `S${idx + 1}`,
+      sales: p.reduce((s, row) => s + amountForCategory(row), 0),
+      salesTarget: Math.round(250000 / 4),
+      newConsumers: c.length,
+      recommendations: r.length,
+      convertedRecommendations: r.filter((row) => row.converted).length,
+    };
+  });
+}
+
+function buildLocalTopProducts(purchases: Purchase[], filters: ReportFiltersValue, limit: number): TopProductRow[] {
+  const from = filters.from.getTime();
+  const to = filters.to.getTime();
+  const acc = new Map<string, TopProductRow>();
+  purchases.forEach((purchase) => {
+    const t = new Date(purchase.date).getTime();
+    if (t < from || t > to) return;
+    if (filters.brand !== "all" && purchase.brand !== filters.brand) return;
+    if (filters.baId !== "all" && purchase.baId !== filters.baId) return;
+    if (filters.storeId !== "all" && purchase.storeId !== filters.storeId) return;
+    purchase.lines.forEach((line) => {
+      const category = line.category ?? categoryFromSku(line.sku);
+      if (filters.category !== "all" && category !== filters.category) return;
+      const prev = acc.get(line.sku) ?? { sku: line.sku, name: line.name, category, qty: 0, sales: 0 };
+      prev.qty += line.qty;
+      prev.sales += line.qty * line.price;
+      acc.set(line.sku, prev);
+    });
+  });
+  return Array.from(acc.values()).sort((a, b) => b.sales - a.sales).slice(0, limit);
+}
+
+function categorySalesFromPurchases(purchases: Purchase[]) {
+  const out = { Skincare: 0, Makeup: 0, Fragancia: 0 };
+  purchases.forEach((p) => p.lines.forEach((line) => {
+    out[line.category ?? categoryFromSku(line.sku)] += line.qty * line.price;
+  }));
+  return out;
+}
+
+function categoryFromSku(sku: string): Category {
+  if (/AGV|RNM|PUR/i.test(sku)) return "Skincare";
+  if (/LAV|IDO|LIB|MYS/i.test(sku)) return "Fragancia";
+  return "Makeup";
+}
+
+function countWeekdays(from: Date, to: Date) {
+  let count = 0;
+  for (const d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) count += 1;
+  }
+  return Math.max(1, count);
+}
+
 export default function Performance() {
   const user = useCurrentUser()!;
   const { users, stores, consumers, purchases, recommendations, appointments, followUps, samples, isRealSession } = useApp();
