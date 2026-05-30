@@ -45,6 +45,7 @@ import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
+import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
