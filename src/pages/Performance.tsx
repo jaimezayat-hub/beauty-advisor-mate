@@ -49,7 +49,7 @@ import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
-import { usePerformanceKpis, useTopProducts, type KpiPeriod } from "@/lib/db/usePerformance";
+import { usePerformanceKpis, useTopProducts, type KpiPeriod, type KpiSummary } from "@/lib/db/usePerformance";
 import {
   ReportFilters,
   defaultFilters,
@@ -201,24 +201,24 @@ export default function Performance() {
   );
 }
 
-function BaPanel({ profile, user, period, apptStats, liveKpis, category, topProducts }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
+function BaPanel({ profile, user, period, apptStats, category, topProducts }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: KpiSummary; category: Category; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
   const categoryTotal = Object.values(profile.categorySales).reduce((s, v) => s + v, 0) || 1;
   const categoryShare =
     category === "all" ? 1 : (profile.categorySales[category] ?? 0) / categoryTotal;
   const scale = (n: number) => Math.round(n * categoryShare);
   const seedMonthSales = scale(profile.history.slice(-4).reduce((s, w) => s + w.sales, 0));
-  const previousSales = profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0);
-  const monthSales = scale(liveKpis ? liveKpis.sales : seedMonthSales);
-  const transactions = scale(liveKpis ? liveKpis.transactions : Math.round(seedMonthSales / 3450));
-  const averageTicket = liveKpis ? liveKpis.avgTicket : seedMonthSales / Math.max(transactions, 1);
-  const recs = profile.history.slice(-4).reduce((s, w) => s + w.recommendations, 0);
-  const converted = profile.history.slice(-4).reduce((s, w) => s + w.convertedRecommendations, 0);
-  const newConsumers = liveKpis ? liveKpis.newConsumers : profile.history.slice(-4).reduce((s, w) => s + w.newConsumers, 0);
+  const previousSales = profile.previousSales ?? scale(profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0));
+  const monthSales = profile.periodSales ?? seedMonthSales;
+  const transactions = profile.transactions ?? scale(Math.round(seedMonthSales / 3450));
+  const averageTicket = transactions > 0 ? monthSales / transactions : 0;
+  const recs = profile.recommendationsTotal ?? profile.history.slice(-4).reduce((s, w) => s + w.recommendations, 0);
+  const converted = profile.convertedRecommendationsTotal ?? profile.history.slice(-4).reduce((s, w) => s + w.convertedRecommendations, 0);
+  const newConsumers = profile.periodNewConsumers ?? profile.history.slice(-4).reduce((s, w) => s + w.newConsumers, 0);
   const targetPct = Math.round((monthSales / profile.monthlyTarget) * 100);
   const growth = previousSales > 0 ? Math.round(((monthSales - previousSales) / previousSales) * 100) : 0;
-  const fupsCompleted = liveKpis ? liveKpis.followupsCompleted : profile.followUpsCompleted;
-  const fupsPending = liveKpis ? liveKpis.followupsPending : profile.followUpsPending;
+  const fupsCompleted = profile.followUpsCompleted;
+  const fupsPending = profile.followUpsPending;
 
   const salesSpark = profile.history.map((w) => Math.max(1, w.sales));
   const newSpark = profile.history.map((w) => Math.max(1, w.newConsumers));
