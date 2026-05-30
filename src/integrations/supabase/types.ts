@@ -1309,8 +1309,12 @@ export type Database = {
           consumer_id: string
           created_at: string
           duration_min: number | null
+          follow_up_id: string | null
           id: string
           notes: string | null
+          purchase_at: string | null
+          purchase_total: number | null
+          purchased: boolean
           reason_id: string | null
           store_id: string
           visited_at: string
@@ -1322,8 +1326,12 @@ export type Database = {
           consumer_id: string
           created_at?: string
           duration_min?: number | null
+          follow_up_id?: string | null
           id?: string
           notes?: string | null
+          purchase_at?: string | null
+          purchase_total?: number | null
+          purchased?: boolean
           reason_id?: string | null
           store_id: string
           visited_at?: string
@@ -1335,8 +1343,12 @@ export type Database = {
           consumer_id?: string
           created_at?: string
           duration_min?: number | null
+          follow_up_id?: string | null
           id?: string
           notes?: string | null
+          purchase_at?: string | null
+          purchase_total?: number | null
+          purchased?: boolean
           reason_id?: string | null
           store_id?: string
           visited_at?: string
@@ -1347,6 +1359,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visits_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
             referencedColumns: ["id"]
           },
           {
