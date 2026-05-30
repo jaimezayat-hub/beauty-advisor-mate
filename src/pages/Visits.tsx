@@ -404,6 +404,25 @@ export default function Visits() {
                         {v.reasonName ? ` · ${v.reasonName}` : ""}
                         {v.durationMin ? ` · ${v.durationMin} min` : ""}
                       </p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {v.purchased ? (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/15 text-success">
+                            Compró
+                            {v.purchaseTotal != null
+                              ? ` · $${v.purchaseTotal.toLocaleString("es-MX")}`
+                              : ""}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            Sin compra
+                          </span>
+                        )}
+                        {v.followUpId && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                            Seguimiento programado
+                          </span>
+                        )}
+                      </div>
                       {v.notes && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {v.notes}
