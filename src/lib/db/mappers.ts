@@ -16,6 +16,7 @@ import type {
   FollowUp,
   Sample,
   Recommendation,
+  Visit,
 } from "@/lib/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -29,6 +30,7 @@ type DbPurchaseItem = Database["public"]["Tables"]["purchase_items"]["Row"];
 type DbAppointment = Database["public"]["Tables"]["appointments"]["Row"];
 type DbFollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
 type DbSampleDelivery = Database["public"]["Tables"]["sample_deliveries"]["Row"];
+type DbVisit = Database["public"]["Tables"]["visits"]["Row"];
 
 const VALID_SEGMENTS: Segment[] = ["VIP", "Recurrente", "Nueva", "EnRiesgo"];
 const VALID_INTERESTS: Interest[] = ["Fragancia", "Skincare", "Makeup"];
