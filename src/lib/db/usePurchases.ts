@@ -32,7 +32,7 @@ export function usePurchasesList(filters: PurchasesFilter, enabled = true) {
       if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
       if (filters.consumerId) q = q.eq("consumer_id", filters.consumerId);
       if (filters.from) q = q.gte("purchased_at", filters.from);
-      if (filters.to) q = q.lte("purchased_at", filters.to + "T23:59:59");
+      if (filters.to) q = q.lte("purchased_at", filters.to.includes("T") ? filters.to : `${filters.to}T23:59:59`);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []).map((p: any) => mapPurchase(p, p.purchase_items ?? []));
