@@ -118,11 +118,24 @@ export function usePerformanceKpis(
         if (filters.storeId && filters.storeId !== "all") next = next.eq("store_id", filters.storeId);
         return next;
       };
-      const [purchases, consumers, fups, appts, samples] = await Promise.all([
+      const previousFromISO = previousRangeStart(fromISO, toISO ?? new Date().toISOString());
+      const [purchases, previousPurchases, consumers, fups, appts, samples] = await Promise.all([
         applyShared(
           sb.from("purchases").select("id,total,ba_id,store_id,brand,purchased_at,purchase_items(qty,unit_price,sku_snapshot,products(category))").is("deleted_at", null),
           "purchased_at",
         ),
+        (() => {
+          let q = sb
+            .from("purchases")
+            .select("id,total,ba_id,store_id,brand,purchased_at,purchase_items(qty,unit_price,sku_snapshot,products(category))")
+            .is("deleted_at", null)
+            .gte("purchased_at", previousFromISO)
+            .lt("purchased_at", fromISO);
+          if (filters.brand && filters.brand !== "all") q = q.eq("brand", filters.brand);
+          if (filters.baId && filters.baId !== "all") q = q.eq("ba_id", filters.baId);
+          if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
+          return q;
+        })(),
         (() => {
           let q = sb.from("consumers").select("id,owner_ba_id,store_id,brand,created_at", { count: "exact", head: false }).is("deleted_at", null).gte("created_at", fromISO);
           if (toISO) q = q.lte("created_at", toISO);
@@ -138,6 +151,8 @@ export function usePerformanceKpis(
       const purchRows: any[] = purchases.data ?? [];
       const purchaseAmount = (r: any) => amountForCategory(r, category);
       const relevantPurchases = purchRows.filter((r) => purchaseAmount(r) > 0);
+      const previousRows: any[] = previousPurchases.data ?? [];
+      const relevantPreviousPurchases = previousRows.filter((r) => purchaseAmount(r) > 0);
       const tx = relevantPurchases.length;
       const total = relevantPurchases.reduce((s, r) => s + purchaseAmount(r), 0);
       const fupRows: any[] = fups.data ?? [];
@@ -152,6 +167,7 @@ export function usePerformanceKpis(
         followUps: fupRows,
         appointments: apptRows,
         samples: sampRows,
+        previousPurchases: relevantPreviousPurchases,
         fromISO,
         toISO: toISO ?? new Date().toISOString(),
       });
@@ -200,6 +216,7 @@ function amountForCategory(purchase: any, category: PerformanceCategory) {
 
 function buildProfiles(args: {
   purchases: any[];
+  previousPurchases: any[];
   purchaseAmount: (row: any) => number;
   consumers: any[];
   followUps: any[];
@@ -216,7 +233,9 @@ function buildProfiles(args: {
   const weekly = (baId: string) => buildHistory(baId, args.purchases, args.consumers, args.purchaseAmount, args.toISO);
   const profiles = Array.from(baIds).map((baId) => {
     const purchases = args.purchases.filter((r) => r.ba_id === baId);
+    const previousPurchases = args.previousPurchases.filter((r) => r.ba_id === baId);
     const sales = purchases.reduce((s, r) => s + args.purchaseAmount(r), 0);
+    const previousSales = previousPurchases.reduce((s, r) => s + args.purchaseAmount(r), 0);
     const consumers = args.consumers.filter((r) => r.owner_ba_id === baId);
     const followUps = args.followUps.filter((r) => r.ba_id === baId);
     const appointments = args.appointments.filter((r) => r.ba_id === baId);
@@ -238,6 +257,12 @@ function buildProfiles(args: {
       baName: `BA ${baId.slice(0, 8)}`,
       storeId: firstStore,
       brand: firstBrand,
+      periodSales: sales,
+      previousSales,
+      transactions: purchases.length,
+      periodNewConsumers: consumers.length,
+      recommendationsTotal: 0,
+      convertedRecommendationsTotal: 0,
       monthlyTarget: Math.max(1, Math.round((250000 * rangeDays) / 30)),
       newConsumerTarget: Math.max(1, Math.round((16 * rangeDays) / 30)),
       activeDays: activeDates.size,
@@ -259,6 +284,13 @@ function buildProfiles(args: {
   });
   const ranked = profiles.sort((a, b) => b.history.reduce((s, w) => s + w.sales, 0) - a.history.reduce((s, w) => s + w.sales, 0));
   return ranked.map((p, i) => ({ ...p, rank: i + 1, rankTotal: ranked.length }));
+}
+
+function previousRangeStart(fromISO: string, toISO: string) {
+  const from = new Date(fromISO);
+  const to = new Date(toISO);
+  const ms = Math.max(86400000, to.getTime() - from.getTime());
+  return new Date(from.getTime() - ms).toISOString();
 }
 
 function categorySales(purchases: any[]) {
