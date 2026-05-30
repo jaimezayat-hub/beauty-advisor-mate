@@ -19,6 +19,7 @@ import FollowUpPage from "./pages/FollowUp";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Performance from "./pages/Performance";
+import Catalog from "./pages/Catalog";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/consumidores/nueva" element={<NewConsumer />} />
               <Route path="/consumidores/:id" element={<ConsumerProfile />} />
               <Route path="/recomendaciones" element={<Recommendations />} />
+              <Route path="/catalogo" element={<Catalog />} />
               <Route path="/compras" element={<Purchases />} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/seguimiento" element={<FollowUpPage />} />

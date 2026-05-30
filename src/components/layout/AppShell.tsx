@@ -12,7 +12,9 @@ import {
   BarChart3,
   Search,
   ShoppingBag,
+  Sparkles as SparklesIcon,
   Sparkles,
+  BookOpen,
   Users,
   WifiOff,
 } from "lucide-react";
