@@ -6,16 +6,28 @@ import type { FollowUp } from "@/lib/types";
 export const followUpsKey = (filters?: unknown) =>
   ["follow_ups", filters ?? {}] as const;
 
-export function useFollowUpsList(enabled = true) {
+export interface FollowUpsFilter {
+  baId?: string | "all";
+  storeId?: string | "all";
+  from?: string;
+  to?: string;
+}
+
+export function useFollowUpsList(filters: FollowUpsFilter = {}, enabled = true) {
   return useQuery({
-    queryKey: followUpsKey(),
+    queryKey: followUpsKey(filters),
     enabled,
     queryFn: async (): Promise<FollowUp[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("follow_ups")
         .select("*")
         .order("due_at", { ascending: false })
         .limit(500);
+      if (filters.baId && filters.baId !== "all") q = q.eq("ba_id", filters.baId);
+      if (filters.storeId && filters.storeId !== "all") q = q.eq("store_id", filters.storeId);
+      if (filters.from) q = q.gte("due_at", filters.from);
+      if (filters.to) q = q.lte("due_at", filters.to);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []).map(mapFollowUp);
     },
