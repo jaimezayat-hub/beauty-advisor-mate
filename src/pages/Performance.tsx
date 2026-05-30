@@ -211,7 +211,6 @@ function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { pro
   const fupsCompleted = liveKpis ? liveKpis.followupsCompleted : profile.followUpsCompleted;
   const fupsPending = liveKpis ? liveKpis.followupsPending : profile.followUpsPending;
 
-  const cards: KpiCardProps[] = [
   const salesSpark = profile.history.map((w) => Math.max(1, w.sales));
   const newSpark = profile.history.map((w) => Math.max(1, w.newConsumers));
   const safeRecRate = recs > 0 ? Math.round((converted / recs) * 100) : 0;
