@@ -79,6 +79,7 @@ export default function ConsumerProfile() {
   const mySamples = t?.samples ?? samples.filter((s) => s.consumerId === c.id);
   const myFollowUps = t?.followUps ?? followUps.filter((f) => f.consumerId === c.id);
   const myMessages = t?.messages ?? messages.filter((m) => m.consumerId === c.id);
+  const myVisits = t?.visits ?? [];
   const lastTxAt = isRealSession ? t?.lastTransactionAt : c.lastTransactionAt;
 
   const total = myPurchases.reduce((s, p) => s + p.total, 0);
@@ -243,6 +244,7 @@ export default function ConsumerProfile() {
                   ["recomendaciones", "Recomendaciones"],
                   ["muestras", "Muestras"],
                   ["citas", "Citas"],
+                  ["visitas", "Visitas"],
                   ["comunicaciones", "Comunicaciones"],
                   ["seguimiento", "Seguimiento"],
                 ].map(([v, l]) => (
