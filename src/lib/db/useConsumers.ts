@@ -7,6 +7,7 @@ import {
   mapAppointment,
   mapFollowUp,
   mapSampleDelivery,
+  mapVisit,
 } from "./mappers";
 import type {
   Consumer,
@@ -16,6 +17,7 @@ import type {
   FollowUp,
   Sample,
   Message,
+  Visit,
 } from "@/lib/types";
 
 export const consumersKey = (filters?: unknown) =>
@@ -174,6 +176,7 @@ export interface ConsumerTimeline {
   followUps: FollowUp[];
   samples: Sample[];
   messages: Message[];
+  visits: Visit[];
   lastTransactionAt?: string;
 }
 
@@ -184,9 +187,9 @@ export function useConsumerTimeline(id: string | undefined, enabled = true) {
     enabled: !!id && enabled,
     queryFn: async (): Promise<ConsumerTimeline> => {
       if (!id) {
-        return { purchases: [], appointments: [], followUps: [], samples: [], messages: [] };
+        return { purchases: [], appointments: [], followUps: [], samples: [], messages: [], visits: [] };
       }
-      const [pur, appts, fups, samps, wa, sampleDefs] = await Promise.all([
+      const [pur, appts, fups, samps, wa, sampleDefs, vis] = await Promise.all([
         supabase
           .from("purchases")
           .select("*, purchase_items(*)")
@@ -214,6 +217,11 @@ export function useConsumerTimeline(id: string | undefined, enabled = true) {
           .eq("consumer_id", id)
           .order("sent_at", { ascending: false }),
         supabase.from("samples").select("id,name,sku"),
+        supabase
+          .from("visits")
+          .select("*, visit_reasons(name, code)")
+          .eq("consumer_id", id)
+          .order("visited_at", { ascending: false }),
       ]);
 
       const sampleMap = new Map(
@@ -241,6 +249,7 @@ export function useConsumerTimeline(id: string | undefined, enabled = true) {
           content: m.rendered_body,
           channel: "WhatsApp" as const,
         })),
+        visits: (vis.data ?? []).map((v: any) => mapVisit(v, v.visit_reasons ?? undefined)),
         lastTransactionAt,
       };
     },

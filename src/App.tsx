@@ -20,6 +20,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Performance from "./pages/Performance";
 import Catalog from "./pages/Catalog";
+import Visits from "./pages/Visits";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/catalogo" element={<Catalog />} />
               <Route path="/compras" element={<Purchases />} />
               <Route path="/agenda" element={<Agenda />} />
+              <Route path="/visitas" element={<Visits />} />
               <Route path="/seguimiento" element={<FollowUpPage />} />
               <Route path="/reportes" element={<Reports />} />
               <Route path="/desempeno" element={<Performance />} />

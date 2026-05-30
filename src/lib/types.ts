@@ -138,6 +138,21 @@ export interface Message {
   channel: "WhatsApp" | "SMS" | "Email";
 }
 
+export interface Visit {
+  id: string;
+  consumerId: string;
+  baId: string;
+  storeId: string;
+  brand: Brand;
+  visitedAt: string; // ISO
+  durationMin?: number;
+  reasonId?: string;
+  reasonName?: string;
+  reasonCode?: string;
+  appointmentId?: string;
+  notes?: string;
+}
+
 export interface PrivacyConsent {
   accepted: boolean;
   acceptedAt?: string;

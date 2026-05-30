@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConsumerPicker } from "@/components/clienteling/ConsumerPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Download, Plus, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Plus, MessageCircle, UserCheck } from "lucide-react";
 import type { Appointment, AppointmentStatus, AppointmentType, Consumer } from "@/lib/types";
 import { formatDate, fullName } from "@/lib/format";
 import { toast } from "sonner";
@@ -103,6 +103,11 @@ export default function Agenda() {
           <>
             <Button variant="outline" onClick={exportTable}>
               <Download className="size-4 mr-1.5" /> Exportar
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/visitas">
+                <UserCheck className="size-4 mr-1.5" /> Registrar visita
+              </Link>
             </Button>
             <Button
               onClick={() => {

@@ -16,6 +16,7 @@ import type {
   FollowUp,
   Sample,
   Recommendation,
+  Visit,
 } from "@/lib/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -29,6 +30,7 @@ type DbPurchaseItem = Database["public"]["Tables"]["purchase_items"]["Row"];
 type DbAppointment = Database["public"]["Tables"]["appointments"]["Row"];
 type DbFollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
 type DbSampleDelivery = Database["public"]["Tables"]["sample_deliveries"]["Row"];
+type DbVisit = Database["public"]["Tables"]["visits"]["Row"];
 
 const VALID_SEGMENTS: Segment[] = ["VIP", "Recurrente", "Nueva", "EnRiesgo"];
 const VALID_INTERESTS: Interest[] = ["Fragancia", "Skincare", "Makeup"];
@@ -377,5 +379,29 @@ export function mapSampleDelivery(
     productName: meta?.productName ?? "Muestra",
     sku: meta?.sku,
     converted: !!d.converted_purchase_id,
+  };
+}
+
+// ============================================================
+// Visits
+// ============================================================
+
+export function mapVisit(
+  v: DbVisit,
+  reason?: { name?: string; code?: string },
+): Visit {
+  return {
+    id: v.id,
+    consumerId: v.consumer_id,
+    baId: v.ba_id,
+    storeId: v.store_id,
+    brand: v.brand as Brand,
+    visitedAt: v.visited_at,
+    durationMin: v.duration_min ?? undefined,
+    reasonId: v.reason_id ?? undefined,
+    reasonName: reason?.name,
+    reasonCode: reason?.code,
+    appointmentId: v.appointment_id ?? undefined,
+    notes: v.notes ?? undefined,
   };
 }
