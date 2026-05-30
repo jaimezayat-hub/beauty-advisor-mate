@@ -121,7 +121,7 @@ export const useApp = create<AppState>()(
     }),
     {
       name: "loreal-luxe-clienteling",
-      version: 1,
+      version: 2,
     },
   ),
 );
