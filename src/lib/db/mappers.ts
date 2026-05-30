@@ -381,3 +381,27 @@ export function mapSampleDelivery(
     converted: !!d.converted_purchase_id,
   };
 }
+
+// ============================================================
+// Visits
+// ============================================================
+
+export function mapVisit(
+  v: DbVisit,
+  reason?: { name?: string; code?: string },
+): Visit {
+  return {
+    id: v.id,
+    consumerId: v.consumer_id,
+    baId: v.ba_id,
+    storeId: v.store_id,
+    brand: v.brand as Brand,
+    visitedAt: v.visited_at,
+    durationMin: v.duration_min ?? undefined,
+    reasonId: v.reason_id ?? undefined,
+    reasonName: reason?.name,
+    reasonCode: reason?.code,
+    appointmentId: v.appointment_id ?? undefined,
+    notes: v.notes ?? undefined,
+  };
+}
