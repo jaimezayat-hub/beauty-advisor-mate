@@ -92,39 +92,48 @@ export default function Performance() {
   const [filters, setFilters] = useState<ReportFiltersValue>(() => defaultFilters());
   const [category, setCategory] = useState<Category>("all");
   const period = presetToPeriod(filters.preset);
-  const { data: liveKpis } = usePerformanceKpis(isRealSession, period);
+  const { data: liveKpis } = usePerformanceKpis(isRealSession, period, {
+    from: filters.from.toISOString(),
+    to: filters.to.toISOString(),
+    brand: filters.brand,
+    baId: filters.baId,
+    storeId: filters.storeId,
+    category,
+  });
   const periodLabel = periodLabelFromFilters(filters);
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
   const scope = getScope(user);
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
   const regions = Array.from(new Set(stores.map((s) => s.region)));
-  const baseProfiles = baKpis.filter((k) => {
+  const sourceProfiles = isRealSession ? liveKpis?.profiles ?? [] : baKpis;
+  const baseProfiles = sourceProfiles.filter((k) => {
     const u = users.find((x) => x.id === k.baId);
-    if (!u) return false;
+    const storeId = u?.storeId ?? k.storeId ?? "";
     switch (scope.kind) {
-      case "self": return u.id === scope.userId;
-      case "store": return u.storeId === scope.storeId;
-      case "region": return storeIdToRegion[u.storeId] === scope.region;
+      case "self": return k.baId === scope.userId;
+      case "store": return storeId === scope.storeId;
+      case "region": return storeIdToRegion[storeId] === scope.region || user.region === scope.region;
       case "all": return true;
     }
   });
   const profiles = baseProfiles.filter((k) => {
     const u = users.find((x) => x.id === k.baId);
-    if (!u) return false;
-    if (filters.baId !== "all" && u.id !== filters.baId) return false;
-    if (filters.storeId !== "all" && u.storeId !== filters.storeId) return false;
-    if (filters.region !== "all" && storeIdToRegion[u.storeId] !== filters.region) return false;
-    if (filters.brand !== "all" && u.brand !== filters.brand) return false;
+    const storeId = u?.storeId ?? k.storeId ?? "";
+    const brand = u?.brand ?? k.brand;
+    if (filters.baId !== "all" && k.baId !== filters.baId) return false;
+    if (filters.storeId !== "all" && storeId !== filters.storeId) return false;
+    if (filters.region !== "all" && storeIdToRegion[storeId] !== filters.region) return false;
+    if (filters.brand !== "all" && brand !== filters.brand) return false;
     if (filters.chain !== "all") {
-      const st = stores.find((s) => s.id === u.storeId);
+      const st = stores.find((s) => s.id === storeId);
       if (st?.chain !== filters.chain) return false;
     }
     return true;
   });
   const current =
-    (filters.baId !== "all" && baKpis.find((k) => k.baId === filters.baId)) ||
-    baKpis.find((k) => k.baId === user.id) ||
+    (filters.baId !== "all" && profiles.find((k) => k.baId === filters.baId)) ||
+    profiles.find((k) => k.baId === user.id) ||
     profiles[0];
 
   // RF-31 — métricas reales de reagendadas/canceladas a partir de citas
@@ -188,7 +197,7 @@ export default function Performance() {
       {current && (
         <BaPanel
           profile={current}
-          user={user}
+          user={users.find((u) => u.id === current.baId) ?? user}
           period={periodLabel}
           apptStats={apptStats}
           liveKpis={liveKpis}
