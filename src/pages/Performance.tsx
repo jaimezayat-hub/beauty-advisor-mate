@@ -42,6 +42,13 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { useApp, useCurrentUser } from "@/store/useApp";
 import { formatMoney } from "@/lib/format";
@@ -49,28 +56,50 @@ import { cn } from "@/lib/utils";
 import type { BaKpiProfile, User } from "@/lib/types";
 import { getScope } from "@/lib/permissions";
 import { usePerformanceKpis, type KpiPeriod } from "@/lib/db/usePerformance";
+import {
+  ReportFilters,
+  defaultFilters,
+  type ReportFiltersValue,
+} from "@/components/clienteling/ReportFilters";
 
-const PERIODS: { label: string; key: KpiPeriod }[] = [
-  { label: "Esta semana", key: "semana" },
-  { label: "Este mes", key: "mes" },
-  { label: "Últimos 3 meses", key: "trimestre" },
-];
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--gold))"];
 const SOFT_GRID = "hsl(var(--border))";
 
 type KpiFocus = "ventas" | "clienteling" | "adopcion";
+type Category = "all" | "Skincare" | "Makeup" | "Fragancia";
+
+function presetToPeriod(preset: ReportFiltersValue["preset"]): KpiPeriod {
+  if (preset === "hoy" || preset === "7d") return "semana";
+  if (preset === "trimestre" || preset === "ano") return "trimestre";
+  return "mes";
+}
+
+function periodLabelFromFilters(f: ReportFiltersValue): string {
+  const map: Record<ReportFiltersValue["preset"], string> = {
+    hoy: "Hoy",
+    "7d": "Últimos 7 días",
+    mes: "Este mes",
+    trimestre: "Últimos 3 meses",
+    ano: "Este año",
+    custom: `${f.from.toLocaleDateString("es-MX")} – ${f.to.toLocaleDateString("es-MX")}`,
+  };
+  return map[f.preset];
+}
 
 export default function Performance() {
   const user = useCurrentUser()!;
   const { users, baKpis, stores, appointments, isRealSession } = useApp();
-  const [period, setPeriod] = useState<KpiPeriod>("mes");
+  const [filters, setFilters] = useState<ReportFiltersValue>(() => defaultFilters());
+  const [category, setCategory] = useState<Category>("all");
+  const period = presetToPeriod(filters.preset);
   const { data: liveKpis } = usePerformanceKpis(isRealSession, period);
-  const periodLabel = PERIODS.find((p) => p.key === period)?.label ?? "Este mes";
+  const periodLabel = periodLabelFromFilters(filters);
   const isBa = user.role === "ba";
   const isDirector = user.role === "zone_supervisor" || user.role === "central_admin";
   const scope = getScope(user);
   const storeIdToRegion = Object.fromEntries(stores.map((s) => [s.id, s.region]));
-  const profiles = baKpis.filter((k) => {
+  const regions = Array.from(new Set(stores.map((s) => s.region)));
+  const baseProfiles = baKpis.filter((k) => {
     const u = users.find((x) => x.id === k.baId);
     if (!u) return false;
     switch (scope.kind) {
@@ -80,11 +109,33 @@ export default function Performance() {
       case "all": return true;
     }
   });
-  const current = baKpis.find((k) => k.baId === user.id) ?? profiles[0];
+  const profiles = baseProfiles.filter((k) => {
+    const u = users.find((x) => x.id === k.baId);
+    if (!u) return false;
+    if (filters.baId !== "all" && u.id !== filters.baId) return false;
+    if (filters.storeId !== "all" && u.storeId !== filters.storeId) return false;
+    if (filters.region !== "all" && storeIdToRegion[u.storeId] !== filters.region) return false;
+    if (filters.brand !== "all" && u.brand !== filters.brand) return false;
+    if (filters.chain !== "all") {
+      const st = stores.find((s) => s.id === u.storeId);
+      if (st?.chain !== filters.chain) return false;
+    }
+    return true;
+  });
+  const current =
+    (filters.baId !== "all" && baKpis.find((k) => k.baId === filters.baId)) ||
+    baKpis.find((k) => k.baId === user.id) ||
+    profiles[0];
 
   // RF-31 — métricas reales de reagendadas/canceladas a partir de citas
   const baIds = new Set(profiles.map((p) => p.baId));
-  const visibleAppts = appointments.filter((a) => baIds.has(a.baId));
+  const fromTs = filters.from.getTime();
+  const toTs = filters.to.getTime();
+  const visibleAppts = appointments.filter((a) => {
+    if (!baIds.has(a.baId)) return false;
+    const t = new Date(a.date).getTime();
+    return t >= fromTs && t <= toTs;
+  });
   const seedStats = {
     total: visibleAppts.length,
     rescheduled: visibleAppts.filter((a) => a.status === "Reagendada").length,
@@ -102,19 +153,35 @@ export default function Performance() {
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <PageHeader
-          eyebrow="Performance clienteling"
-          title={isBa ? "Mi Desempeño" : "Desempeño del Equipo"}
-          description="KPIs de ventas, clienteling y adopción con lectura ejecutiva e interacción por período."
-        />
-        <div className="flex flex-wrap gap-2">
-          {PERIODS.map((p) => (
-            <Button key={p.key} variant={period === p.key ? "default" : "outline"} size="sm" onClick={() => setPeriod(p.key)}>
-              {p.label}
-            </Button>
-          ))}
-        </div>
+      <PageHeader
+        eyebrow="Performance clienteling"
+        title={isBa ? "Mi Desempeño" : "Desempeño del Equipo"}
+        description="KPIs de ventas, clienteling y adopción con lectura ejecutiva e interacción por período."
+      />
+
+      <ReportFilters
+        value={filters}
+        onChange={setFilters}
+        stores={stores}
+        users={users}
+        regions={regions}
+        scope={scope}
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Categoría</span>
+        <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+          <SelectTrigger className="h-8 w-[180px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all" className="text-xs">Todas las categorías</SelectItem>
+            <SelectItem value="Skincare" className="text-xs">Skincare</SelectItem>
+            <SelectItem value="Makeup" className="text-xs">Makeup</SelectItem>
+            <SelectItem value="Fragancia" className="text-xs">Fragancia</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-xs text-muted-foreground ml-2">{periodLabel}</span>
       </div>
 
       {/* Mi desempeño personal (visible para todos los roles) */}
@@ -125,6 +192,7 @@ export default function Performance() {
           period={periodLabel}
           apptStats={apptStats}
           liveKpis={liveKpis}
+          category={category}
         />
       )}
       {/* Desempeño del equipo en scope (oculto para BAs) */}
@@ -135,12 +203,16 @@ export default function Performance() {
   );
 }
 
-function BaPanel({ profile, user, period, apptStats, liveKpis }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number } }) {
+function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
-  const seedMonthSales = profile.history.slice(-4).reduce((s, w) => s + w.sales, 0);
+  const categoryTotal = Object.values(profile.categorySales).reduce((s, v) => s + v, 0) || 1;
+  const categoryShare =
+    category === "all" ? 1 : (profile.categorySales[category] ?? 0) / categoryTotal;
+  const scale = (n: number) => Math.round(n * categoryShare);
+  const seedMonthSales = scale(profile.history.slice(-4).reduce((s, w) => s + w.sales, 0));
   const previousSales = profile.history.slice(0, 4).reduce((s, w) => s + w.sales, 0);
-  const monthSales = liveKpis ? liveKpis.sales : seedMonthSales;
-  const transactions = liveKpis ? liveKpis.transactions : Math.round(seedMonthSales / 3450);
+  const monthSales = scale(liveKpis ? liveKpis.sales : seedMonthSales);
+  const transactions = scale(liveKpis ? liveKpis.transactions : Math.round(seedMonthSales / 3450));
   const averageTicket = liveKpis ? liveKpis.avgTicket : seedMonthSales / Math.max(transactions, 1);
   const recs = profile.history.slice(-4).reduce((s, w) => s + w.recommendations, 0);
   const converted = profile.history.slice(-4).reduce((s, w) => s + w.convertedRecommendations, 0);
