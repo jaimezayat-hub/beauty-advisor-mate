@@ -133,7 +133,7 @@ export default function Performance() {
   const toTs = filters.to.getTime();
   const visibleAppts = appointments.filter((a) => {
     if (!baIds.has(a.baId)) return false;
-    const t = new Date(a.startsAt ?? (a as any).date ?? Date.now()).getTime();
+    const t = new Date(a.date).getTime();
     return t >= fromTs && t <= toTs;
   });
   const seedStats = {
