@@ -201,7 +201,7 @@ export default function Performance() {
   );
 }
 
-function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category }) {
+function BaPanel({ profile, user, period, apptStats, liveKpis, category, topProducts }: { profile: BaKpiProfile; user: User; period: string; apptStats: { total: number; rescheduled: number; cancelled: number; noShow: number }; liveKpis?: { sales: number; transactions: number; avgTicket: number; newConsumers: number; followupsCompleted: number; followupsPending: number }; category: Category; topProducts: import("@/lib/db/usePerformance").TopProductRow[] }) {
   const [focus, setFocus] = useState<KpiFocus>("ventas");
   const categoryTotal = Object.values(profile.categorySales).reduce((s, v) => s + v, 0) || 1;
   const categoryShare =
@@ -306,7 +306,7 @@ function BaPanel({ profile, user, period, apptStats, liveKpis, category }: { pro
         <ActionPanel profile={profile} focus={focus} />
       </div>
 
-      <Charts profile={profile} focus={focus} setFocus={setFocus} />
+      <Charts profile={profile} focus={focus} setFocus={setFocus} topProducts={topProducts} />
     </div>
   );
 }
