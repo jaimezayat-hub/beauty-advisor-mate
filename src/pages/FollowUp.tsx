@@ -90,7 +90,7 @@ export default function FollowUpPage() {
       <PageHeader
         eyebrow="Seguimiento y comunicaciones"
         title="Seguimiento"
-        description="Acciones diarias para mantener viva la relación con tus clientas."
+        description="Acciones diarias para mantener viva la relación con tus clientes."
         actions={
           <Button onClick={() => setRecOpen(true)}>
             <Plus className="size-4 mr-1.5" /> Registrar seguimiento
@@ -375,7 +375,7 @@ function NewFollowUpDialog({
   const [status, setStatus] = useState<NonNullable<FollowUp["status"]>>("completado");
 
   const submit = () => {
-    if (!consumer) return toast.error("Selecciona una consumidor");
+    if (!consumer) return toast.error("Selecciona una consumidora");
     onSave({
       id: `f-${Date.now()}`,
       consumerId: consumer.id,
@@ -515,7 +515,7 @@ function TemplateDialog({
   }, [state.def, consumer, user, store, productName, eventName, newProductName, newProductBenefit]);
 
   const copyAndLog = async () => {
-    if (!consumer) return toast.error("Selecciona una consumidor");
+    if (!consumer) return toast.error("Selecciona una consumidora");
     await navigator.clipboard.writeText(content);
     onSent(consumer, content, state.def.title);
     toast.success("Copiado al portapapeles", {
@@ -562,7 +562,7 @@ function TemplateDialog({
           )}
 
           <div className="rounded-md border border-border bg-muted/30 p-4 text-sm whitespace-pre-line max-h-64 overflow-y-auto leading-relaxed">
-            {content || "Selecciona una consumidor para previsualizar."}
+            {content || "Selecciona una consumidora para previsualizar."}
           </div>
 
           <div className="flex justify-end gap-2">

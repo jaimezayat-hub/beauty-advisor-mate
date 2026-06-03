@@ -81,7 +81,7 @@ export default function Purchases() {
   };
 
   const save = async () => {
-    if (!consumer) return toast.error("Selecciona una consumidor");
+    if (!consumer) return toast.error("Selecciona una consumidora");
     if (lines.length === 0) return toast.error("Agrega al menos un producto");
     const p: Purchase = {
       id: `p-${Date.now()}`,

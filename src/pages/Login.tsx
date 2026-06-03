@@ -118,7 +118,7 @@ export default function Login() {
         <div className="relative z-10 m-auto max-w-md p-12 animate-fade-in">
           <BrandMark brand={brand} className="text-3xl mb-12" />
           <h1 className="font-display text-5xl leading-[1.05] mb-6 text-balance">
-            Cada clienta, una historia que merece ser recordada.
+            Cada cliente, una historia que merece ser recordada.
           </h1>
           <p className="opacity-80 text-lg leading-relaxed">
             Plataforma de clienteling para Beauty Advisors de

@@ -92,7 +92,7 @@ export function AppShell() {
             className="w-full flex items-center gap-2 rounded-lg bg-sidebar-accent/60 hover:bg-sidebar-accent px-3 py-2.5 text-sm transition"
           >
             <Search className="size-4 opacity-70" />
-            <span className="opacity-80">Buscar consumidor…</span>
+            <span className="opacity-80">Buscar consumidora…</span>
             <kbd className="ml-auto text-[10px] opacity-60 bg-sidebar/40 rounded px-1.5 py-0.5">
               ⌘K
             </kbd>

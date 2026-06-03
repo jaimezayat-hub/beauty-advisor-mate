@@ -33,7 +33,7 @@ export function StepIdentity({ draft, errors, update }: Props) {
         <div>
           <h2 className="font-display text-xl">Datos personales</h2>
           <p className="text-sm text-muted-foreground">
-            Información básica para identificar y contactar a la clienta.
+            Información básica para identificar y contactar a la cliente.
           </p>
         </div>
       </header>

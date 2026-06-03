@@ -62,7 +62,7 @@ export const TEMPLATES: TemplateDef[] = [
     category: "Evento VIP",
     title: "Invitación evento VIP",
     body: ({ consumer, ba, brandName, storeName, eventName }) =>
-      `Hola ${consumer.firstName}, como clienta especial de ${brandName} te invito a nuestro evento exclusivo "${eventName ?? "Beauty Night"}" en ${storeName}.\n\nUna noche dedicada a ti: rituales personalizados, regalos y un brindis. Confirma conmigo tu asistencia.\n\nCon cariño,\n${ba.name.split(" ")[0]}`,
+      `Hola ${consumer.firstName}, como cliente especial de ${brandName} te invito a nuestro evento exclusivo "${eventName ?? "Beauty Night"}" en ${storeName}.\n\nUna noche dedicada a ti: rituales personalizados, regalos y un brindis. Confirma conmigo tu asistencia.\n\nCon cariño,\n${ba.name.split(" ")[0]}`,
   },
 ];
 

@@ -153,7 +153,7 @@ export default function ConsumerProfile() {
           <AlertBanner
             tone="primary"
             icon={<Star className="size-4" />}
-            text={`📅 ${anniversary.years} año${anniversary.years > 1 ? "s" : ""} como clienta en ${anniversary.days} día${anniversary.days === 1 ? "" : "s"}.`}
+            text={`📅 ${anniversary.years} año${anniversary.years > 1 ? "s" : ""} como cliente en ${anniversary.days} día${anniversary.days === 1 ? "" : "s"}.`}
           />
         )}
         {replenish && (
@@ -174,7 +174,7 @@ export default function ConsumerProfile() {
           <AlertBanner
             tone="warning"
             icon={<AlertTriangle className="size-4" />}
-            text="⚠️ Esta clienta no tiene firma digital del aviso de privacidad. Solicita su firma en la próxima visita."
+            text="⚠️ Esta cliente no tiene firma digital del aviso de privacidad. Solicita su firma en la próxima visita."
           />
         )}
       </div>
