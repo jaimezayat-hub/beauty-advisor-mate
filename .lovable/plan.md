@@ -1,103 +1,128 @@
-# 🎬 Video Demo Launch — 2 min (Lancôme/YSL Clienteling AI)
 
-## Garantía de aislamiento
+## Objetivo
 
-Todo el trabajo vive en una carpeta nueva **`remotion/`** en la raíz del proyecto. **No se toca ningún archivo de tu app**: ni `src/`, ni `supabase/`, ni `public/`, ni `package.json`, ni rutas, ni base de datos, ni seed. Tu app sigue corriendo exactamente igual durante y después del render.
+Que **Reportes** y **Mi Desempeño** sean completamente dinámicos (filtros que recalculan todo), interactivos (drill-down, gráficas vivas) y cubran los requisitos RF-38 a RF-48 que ya están iniciados, completando lo faltante y exportando todo a CSV.
 
-Si después quieres borrar el video del repo, basta con eliminar la carpeta `remotion/` — cero efectos colaterales.
+---
 
-## Dirección creativa
+## Cobertura de requisitos
 
-- **Estilo**: Luxury editorial cinematográfico (referencia: keynote Apple × campaña Lancôme Absolue)
-- **Paleta**:
-  - Negro profundo `#0A0A0A`
-  - Crema papel `#F5F0E8`
-  - Oro champagne `#C9A84C`
-  - Rosa nude acento `#D4A5A5`
-- **Tipografía**: Cormorant Garamond (display serif) + Inter (UI/body) — ambas vía `@remotion/google-fonts`
-- **Motion system**:
-  - Entradas: blur-to-sharp + spring suave (damping 25)
-  - Transiciones entre fases: wipe horizontal + cross-fade de 20 frames
-  - Movimiento constante: parallax sutil en fondos para que nada se sienta estático
-- **Música**: ninguna en v1 (se puede agregar después si me pasas un MP3 royalty-free)
-- **Voz**: texto on-screen estilo keynote (sin TTS en v1)
+**Verde — Deseables que SÍ entran al alcance:**
+- **RF-46** Tasas de conversión: recomendación → compra · seguimiento → revisita.
+- **RF-47** Dashboard de retención (ya parcial: lo completamos con tendencia y export).
 
-## Estructura de 9 escenas — 120 s @ 30fps = 3600 frames
+**Amarillo — Deseables parqueados (no entran en esta iteración):**
+- **RF-37** Atribución de ventas online por link tracking.
+- **RF-16** Lógica predictiva de reposición.
+- **RF-18** Lookbooks/rutinas compartibles.
+- **RF-10** Enriquecimiento con e-commerce.
 
-| # | Escena | Duración | Beat visual |
-|---|---|---|---|
-| 0 | Cold open: logo + tagline *"El lujo también recuerda"* | 8s | Fundido oro sobre negro |
-| 1 | Home BA — saludo + KPIs + alertas | 14s | Cards animadas en cascada |
-| 2 | Consumidoras — lista + segmentos + onboarding | 16s | Stepper animado, firma aviso privacidad |
-| 3 | Perfil 360° — piel, intereses, historial | 14s | Scroll vertical con parallax |
-| 4 | Catálogo + Recomendaciones AI | 16s | Grid de productos, sparkle al sugerir |
-| 5 | Compras + escaneo de ticket | 12s | Cámara → flash → ✅ |
-| 6 | Agenda + Visitas + Seguimiento WhatsApp | 14s | Calendario + burbuja WhatsApp |
-| 7 | Desempeño — ranking, sparkline, export | 14s | Números contando + gráfica trazándose |
-| 8 | Cierre — tagline + disponibilidad Q3 2026 | 12s | Logo final fade |
+**Obligatorios con front ya iniciado (los completamos y los hacemos dinámicos):**
+- **RF-38** Dashboard ejecutivo de tienda (KPIs: objetivo, avance $, % avance, sell-out, transacciones, registros, seguimientos).
+- **RF-39** Métricas de citas: objetivo semanal, total, nuevas, reagendadas.
+- **RF-40** Filtros: rango de fechas + tienda + región + cadena/marca + BA.
+- **RF-41** Reporte de clientes exportable con todas las columnas, incluida **tipo de seguimiento**.
+- **RF-42** Top Franquicias / Marcas y ventas por categoría (visual).
+- **RF-43** Reporte de desempeño por BA: transacciones, registros, seguimientos, recomendaciones.
+- **RF-44** Agenda Report exportable.
+- **RF-45** Dashboard de adopción por BA / tienda / región.
+- **RF-48** Exportación Excel/CSV en todos los reportes.
 
-Las pantallas son **mock-ups motion-graphics** recreados con divs/SVG (no screen recording de tu app real, pero visualmente consistentes con tu diseño actual: tipografía display, segment badges, paleta Lancôme).
+---
 
-## Arquitectura técnica
+## Cambios en `src/pages/Reports.tsx`
 
-```text
-remotion/
-├── package.json              ← deps aisladas (no afecta tu package.json)
-├── tsconfig.json
-├── scripts/
-│   └── render-remotion.mjs   ← script de render programático
-├── src/
-│   ├── index.ts
-│   ├── Root.tsx              ← <Composition id="main" 1920x1080 30fps 3600f>
-│   ├── MainVideo.tsx         ← TransitionSeries con las 9 escenas
-│   ├── components/
-│   │   ├── PersistentBg.tsx        ← gradiente animado de fondo
-│   │   ├── MockPhone.tsx           ← marco de dispositivo reusable
-│   │   ├── MockCard.tsx            ← cards estilo tu app
-│   │   └── SegmentBadge.tsx        ← réplica visual de tu badge
-│   └── scenes/
-│       ├── Scene0_Open.tsx
-│       ├── Scene1_Home.tsx
-│       ├── Scene2_Consumers.tsx
-│       ├── Scene3_Profile.tsx
-│       ├── Scene4_Catalog.tsx
-│       ├── Scene5_Purchases.tsx
-│       ├── Scene6_Agenda.tsx
-│       ├── Scene7_Performance.tsx
-│       └── Scene8_Close.tsx
-└── public/
-    └── (sin assets externos en v1; todo dibujado en código)
-```
+### 1. Barra global de filtros (RF-40)
+Reemplaza el toggle simple de rango. Sticky superior con:
+- Rango de fechas con presets (Hoy, 7d, Mes, Trimestre, Año) **+ datepicker custom desde/hasta**.
+- Marca (Lancôme / YSL / Todas).
+- Cadena (Palacio / Liverpool / Todas).
+- Región (autocompleta desde `regions`).
+- Tienda (filtrada por cadena/región seleccionadas).
+- BA (filtrado por tienda seleccionada).
+- Botón "Limpiar filtros".
 
-**Output**: `/mnt/documents/clienteling-demo-launch.mp4` (~25–40 MB)
+Todos los datos derivados (KPIs, gráficas, tablas, exports) se recalculan con `useMemo` cuando cambian los filtros. Respeta el `scope` del usuario (BA sólo se ve a sí mismo, gerente su tienda, supervisor su región, central todo).
 
-## ⚠️ Riesgo de timeout en render
+### 2. Tab **Dashboard** (RF-38, RF-42)
+- KPIs reales: Objetivo (de `goals` según scope+periodo), Avance $, % avance, Sell-out, Transacciones, Nuevos registros, Seguimientos, Ticket promedio. Sustituir `targetMx = 850000` hardcodeado.
+- Gráfica **Top Tiendas** (barra horizontal por sell-out).
+- Gráfica **Top Marcas** (barra apilada Lancôme vs YSL).
+- Mix por categoría (ya existe) — se mantiene.
+- Ventas por BA filtradas.
+- Tendencia 8 semanas (ya existe).
 
-El sandbox limita cada comando a **600 segundos (10 min)**. Renderizar 3600 frames a 1920×1080 con `concurrency: 1` podría tardar 8–12 min. Para mitigar:
+### 3. Tab **Citas** (RF-39, RF-44) — nuevo
+- KPIs: objetivo semanal, total citas, **nuevas**, **reagendadas**, completadas, canceladas, no-show.
+- Tabla agenda exportable: nombre, apellido, teléfono, fecha, tipo de evento, BA, estado, comentarios.
+- Botón "Exportar Agenda CSV".
 
-1. **Plan A** — Render directo a 1920×1080. Si pasa en <10 min, listo.
-2. **Plan B (fallback)** — Si excede timeout, divido en 3 lotes (escenas 0-2, 3-5, 6-8), renderizo cada uno, y los concateno con `ffmpeg` (ya está pre-instalado). Tiempo total similar pero cada comando entra debajo del límite.
-3. **Plan C** — Render a 1280×720 (más rápido) y luego upscale. No recomendado para uso final.
+### 4. Tab **Conversión** (RF-46) — nuevo
+- KPI tasa recomendación → compra (cruce `recommendations` vs `purchases` posteriores).
+- KPI tasa seguimiento → revisita (cruce `follow_ups` cerrados vs `visits` posteriores).
+- KPI tasa visita → compra (cruce `visits` con `purchased=true`).
+- Gráfica de embudo + tendencia por semana.
 
-Empiezo con Plan A; si falla, automáticamente paso a Plan B.
+### 5. Tab **Lista Consumidores** (RF-41)
+- Agregar columna **Tipo de seguimiento** (último `follow_up.type` por consumidor).
+- Filtros heredan de la barra global.
+- Export incluye todas las columnas requeridas.
 
-## Pasos de ejecución (al pasar a build)
+### 6. Tab **Desempeño BA** (RF-43)
+- Datos vivos por BA según filtros (no sólo `recommendations` del seed). Conecta con `useFollowUpsList`, `useVisits`, `usePurchases`, `useRecommendations`.
+- Sparkline por BA + drill-down al click → abre modal con sus transacciones del periodo.
+- Export CSV ampliado (incluye visitas y citas).
 
-1. Crear `remotion/` y `bun init` aislado
-2. Instalar Remotion + dependencias (solo dentro de `remotion/`)
-3. Parchar binario compositor para NixOS (paso estándar del sandbox)
-4. Cargar fuentes Google
-5. Escribir los 9 componentes de escena
-6. Spot-check con `bunx remotion still` en 3 frames clave para validar layout antes del render completo
-7. Render Plan A → si timeout, Plan B
-8. Entregar el MP4 con tag `<presentation-artifact>` para descarga directa
+### 7. Tab **Adopción** (RF-45)
+- Vistas conmutables: **por BA · por Tienda · por Región**.
+- Métricas: % BAs activos, días activos promedio, eventos/día.
+- Export CSV de adopción.
 
-## Lo que NO va a pasar
+### 8. Tab **Retención** (RF-47)
+- Ya existe el donut/buckets. Agregar:
+  - Tendencia 12 semanas de churn.
+  - Export CSV de candidatas a reactivación.
 
-- ❌ No se modifica ningún archivo bajo `src/`
-- ❌ No se toca Supabase, migraciones, ni seed
-- ❌ No se cambia tu `package.json` ni `bun.lockb` de la app
-- ❌ No se altera ninguna ruta, página o componente del clienteling
-- ❌ No se reinicia tu dev server
+### 9. Exportación universal (RF-48)
+- Botón "Exportar" en cada tab. Función `exportTab(tab)` central que aprovecha `downloadCSV`.
 
-¿Apruebas el plan para que arranque el render?
+---
+
+## Cambios en `src/pages/Performance.tsx` ("Mi Desempeño")
+
+1. **Mostrar el panel personal a todos los roles** (no sólo BA). Para gerente/supervisor/admin, "Mi Desempeño" muestra el agregado del scope (su tienda, región o nacional). El TeamPanel pasa a ser un tab dentro de la página.
+2. **Dejar de depender de `baKpis` mock** — todos los KPIs ya consumibles desde `usePerformanceKpis` extendido para devolver: ventas, transacciones, ticket, nuevos, seguimientos completados/pendientes, recomendaciones, conversión, citas (todas, nuevas, reagendadas, completadas, canceladas, noshow), visitas, días activos.
+3. **Filtros locales sincronizados** con los mismos chips de Reportes (período + opcional store/BA para roles superiores).
+4. Cards y gráficas se recalculan en vivo según los filtros.
+5. Botón **Exportar mi desempeño** (CSV).
+
+---
+
+## Cambios en datos / hooks
+
+- **`src/lib/db/usePerformance.ts`** — Extender `usePerformanceKpis` para aceptar `{ baId?, storeId?, region?, brand?, from, to }` y devolver el set completo de métricas mencionado arriba. Calcular reagendadas detectando `appointments` con `notes` que contenga `[reagendada]` o nuevo campo (si no existe, derivar de status histórico).
+- **`src/lib/db/useGoals.ts`** (nuevo) — Hook para leer `goals` + `goal_assignments` según scope/periodo, devolver `targetValue` aplicable.
+- **`src/lib/db/useRecommendations.ts`** o equivalente — Para tab Desempeño BA y Conversión (si no existe, agregar query simple a tabla relevante; si no hay tabla, computar desde notas/visit notes).
+- **`src/lib/csv.ts`** — Ya existe. Reutilizar.
+
+---
+
+## Detalles técnicos
+
+- Mantener convención de roles (`getScope` / `inScope`) — los filtros nunca permiten ver fuera del scope del usuario.
+- Modo demo (`!isRealSession`): los filtros siguen funcionando sobre datos seed para que la demo sea realista.
+- Toda gráfica usa tokens semánticos (`hsl(var(--primary))`, etc.) — sin colores hardcoded.
+- `useMemo` agresivo para no recomputar al re-render; queries `enabled` cuando aplican.
+- Sticky filter bar con `backdrop-blur` y `z-20`.
+
+---
+
+## Archivos a tocar
+
+- `src/pages/Reports.tsx` (refactor mayor: barra de filtros + nuevos tabs)
+- `src/pages/Performance.tsx` (panel personal para todos + filtros + export)
+- `src/lib/db/usePerformance.ts` (extender)
+- `src/lib/db/useGoals.ts` (nuevo)
+- `src/components/clienteling/ReportFilters.tsx` (nuevo, componente reusable)
+
+Sin cambios de esquema en DB — todo lo necesario ya existe (`goals`, `goal_assignments`, `appointments`, `visits`, `follow_ups`, `purchases`, `consumers`, `stores`, `regions`).
