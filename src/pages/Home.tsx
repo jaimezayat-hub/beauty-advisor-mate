@@ -85,7 +85,7 @@ export default function Home() {
         description="Esto es lo que necesitas saber para tu día en el counter."
         actions={
           <Button asChild size="lg">
-            <Link to="/consumidores/nueva">+ Nueva consumidor</Link>
+            <Link to="/consumidores/nueva">+ Nueva consumidora</Link>
           </Button>
         }
       />

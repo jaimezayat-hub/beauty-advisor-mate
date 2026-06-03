@@ -558,7 +558,7 @@ function KpiCard({ icon, label, value, hint, progress, donut, delta, spark, acti
 function ActionPanel({ profile, focus }: { profile: BaKpiProfile; focus: KpiFocus }) {
   const content = {
     ventas: ["Impulsar fragancias premium en tickets con skincare.", "Cerrar brecha con 3 tickets de alto valor.", "Priorizar consumidores VIP con compra >60 días."],
-    clienteling: ["Completar seguimientos pendientes antes de las 17:00.", "Activar reposición en clientas de 30–90 días.", "Contactar cumpleaños restantes del mes."],
+    clienteling: ["Completar seguimientos pendientes antes de las 17:00.", "Activar reposición en clientes de 30–90 días.", "Contactar cumpleaños restantes del mes."],
     adopcion: ["Registrar cada interacción del counter en el momento.", "Convertir citas completadas en recomendaciones guardadas.", "Mantener actividad diaria para sostener adopción >90."],
   }[focus];
   return (
@@ -734,7 +734,7 @@ function SuccessMetrics({ profiles }: { profiles: BaKpiProfile[] }) {
     ["Adopción del sistema", "≥ 90% BAs activas", Math.round(profiles.reduce((s, p) => s + p.activeDays / p.workDays, 0) / profiles.length * 100), 90],
     ["Perfiles completos", "≥ 90% campos clave", 92, 90],
     ["Incremento en ticket promedio", "+10% vs período anterior", 12, 10],
-    ["Seguimientos proactivos", "≥ 70% clientas contactadas", 74, 70],
+    ["Seguimientos proactivos", "≥ 70% clientes contactadas", 74, 70],
     ["Citas completadas vs agendadas", "≥ 80%", 81, 80],
     ["Nuevos registros por BA/mes", "Objetivo configurable", 17, 16],
   ] as const;

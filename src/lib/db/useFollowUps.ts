@@ -73,7 +73,7 @@ export function useFollowUpTemplates(enabled = true) {
   });
 }
 
-/** Registra un mensaje WhatsApp enviado/copiado para una consumidor. */
+/** Registra un mensaje WhatsApp enviado/copiado para una consumidora. */
 export function useLogWhatsapp() {
   return useMutation({
     mutationFn: async (args: {

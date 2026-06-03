@@ -52,7 +52,7 @@ export default function Recommendations() {
   const [filterCat, setFilterCat] = useState<"all" | "Skincare" | "Makeup" | "Fragancia">("all");
 
   const brand = consumer?.brand ?? user.brand;
-  // En sesión real, traemos las compras reales de la consumidor para alimentar reposición / dedupe.
+  // En sesión real, traemos las compras reales de la consumidora para alimentar reposición / dedupe.
   const consumerTimeline = useConsumerTimeline(consumer?.id, isRealSession && !!consumer);
   const consumerPurchases = isRealSession
     ? consumerTimeline.data?.purchases ?? []
@@ -138,7 +138,7 @@ export default function Recommendations() {
   const isSelected = (sku: string) => selected.some((s) => s.sku === sku);
 
   const save = () => {
-    if (!consumer) return toast.error("Selecciona una consumidor");
+    if (!consumer) return toast.error("Selecciona una consumidora");
     if (selected.length === 0) return toast.error("Agrega al menos un producto");
     const r: Recommendation = {
       id: `r-${Date.now()}`,
@@ -343,7 +343,7 @@ export default function Recommendations() {
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notas para la consumidor (opcional)…"
+          placeholder="Notas para la consumidora (opcional)…"
           className="mt-5 min-h-[80px]"
         />
 

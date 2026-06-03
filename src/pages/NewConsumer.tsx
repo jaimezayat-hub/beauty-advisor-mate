@@ -132,8 +132,8 @@ export default function NewConsumer() {
   return (
     <div className="p-6 lg:p-12 max-w-5xl mx-auto space-y-8">
       <PageHeader
-        eyebrow="Alta de clienta"
-        title="Nueva consumidor"
+        eyebrow="Alta de cliente"
+        title="Nueva consumidora"
         description="Captura los datos esenciales, su perfil de belleza y el consentimiento de privacidad."
       />
 

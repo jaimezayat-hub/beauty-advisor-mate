@@ -15,7 +15,7 @@ En cumplimiento con la Ley Federal de Protección de Datos Personales en Posesi�
 
 Datos recabados: nombre, fecha de nacimiento, género, correo electrónico, teléfono celular, preferencias de belleza, historial de compras y de servicios en counter.
 
-Finalidades primarias: prestación de servicios de Beauty Advisor, gestión de tu perfil de clienta, registro de transacciones, recomendaciones personalizadas y agendamiento de citas en cabina.
+Finalidades primarias: prestación de servicios de Beauty Advisor, gestión de tu perfil de cliente, registro de transacciones, recomendaciones personalizadas y agendamiento de citas en cabina.
 
 Finalidades secundarias (requieren consentimiento explícito): envío de comunicaciones promocionales por SMS, correo electrónico y/o WhatsApp; invitaciones a eventos exclusivos; programas de lealtad.
 
@@ -106,7 +106,7 @@ export function validateIdentity(d: OnboardingDraft): ErrorMap {
       : !birth
         ? "Fecha inválida"
         : birth > maxDate
-          ? "La clienta debe tener al menos 13 años"
+          ? "La cliente debe tener al menos 13 años"
           : birth < minDate
             ? "Fecha fuera de rango"
             : "",

@@ -37,7 +37,7 @@ export function StepConsent({ draft, errors, update, assignedBaName }: Props) {
           <div>
             <h2 className="font-display text-xl">Aviso de privacidad (LFPDPPP)</h2>
             <p className="text-sm text-muted-foreground">
-              Lee el aviso completo a la clienta y solicita su aceptación en el iPad.
+              Lee el aviso completo a la cliente y solicita su aceptación en el iPad.
             </p>
           </div>
         </header>
@@ -79,7 +79,7 @@ export function StepConsent({ draft, errors, update, assignedBaName }: Props) {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium flex items-center gap-2">
-                <PenLine className="size-4 text-primary" /> Firma digital de clienta
+                <PenLine className="size-4 text-primary" /> Firma digital de cliente
               </p>
               <p className="text-xs text-muted-foreground">
                 Firme con su dedo en el recuadro para confirmar su aceptación.
@@ -158,7 +158,7 @@ function SignaturePad({ disabled, value, onChange }: { disabled: boolean; value:
     ctx.stroke();
     ctx.font = "12px sans-serif";
     ctx.fillStyle = "#8b8178";
-    ctx.fillText("Firma de la clienta", 28, 178);
+    ctx.fillText("Firma de la cliente", 28, 178);
   };
 
   useEffect(() => {

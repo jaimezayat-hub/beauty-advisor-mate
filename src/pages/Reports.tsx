@@ -1310,7 +1310,7 @@ function RetentionTab({
           </div>
           {reactivationList.length === 0 ? (
             <p className="p-8 text-sm text-center text-muted-foreground">
-              Cartera al día — sin clientas en riesgo.
+              Cartera al día — sin clientes en riesgo.
             </p>
           ) : (
             <ul className="divide-y divide-border max-h-[320px] overflow-y-auto">

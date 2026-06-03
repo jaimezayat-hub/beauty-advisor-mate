@@ -66,7 +66,7 @@ export function useConsumersList(filters: ConsumersFilter, enabled = true) {
   });
 }
 
-/** Detalle de una consumidor con relaciones (consents, prefs, tags, notice). */
+/** Detalle de una consumidora con relaciones (consents, prefs, tags, notice). */
 export function useConsumerDetail(id: string | undefined, enabled = true) {
   return useQuery({
     queryKey: consumerKey(id ?? "none"),
@@ -99,7 +99,7 @@ export function useConsumerDetail(id: string | undefined, enabled = true) {
   });
 }
 
-/** Crea una consumidor + consents + prefs + tags + aceptación de aviso. */
+/** Crea una consumidora + consents + prefs + tags + aceptación de aviso. */
 export function useCreateConsumer() {
   const qc = useQueryClient();
   return useMutation({
@@ -188,7 +188,7 @@ export interface ConsumerTimeline {
   lastTransactionAt?: string;
 }
 
-/** Trae el timeline real de una consumidor desde Supabase. */
+/** Trae el timeline real de una consumidora desde Supabase. */
 export function useConsumerTimeline(id: string | undefined, enabled = true) {
   return useQuery({
     queryKey: ["consumer-timeline", id ?? "none"],

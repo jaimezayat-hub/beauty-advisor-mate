@@ -442,7 +442,7 @@ function NewAppointmentDialog({
   }, [defaultDate]);
 
   const submit = () => {
-    if (!consumer) return toast.error("Selecciona una consumidor");
+    if (!consumer) return toast.error("Selecciona una consumidora");
     const dt = new Date(`${date}T${time}:00`);
     onCreate({
       id: `a-${Date.now()}`,

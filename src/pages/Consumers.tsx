@@ -69,14 +69,14 @@ export default function Consumers() {
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8">
       <PageHeader
-        eyebrow="Cartera de clientas"
+        eyebrow="Cartera de clientes"
         title="Consumidores"
-        description="Gestiona la relación 1:1 con cada clienta de tu counter."
+        description="Gestiona la relación 1:1 con cada cliente de tu counter."
         actions={
           user.role === "ba" ? (
             <Button asChild size="lg">
               <Link to="/consumidores/nueva">
-                <Plus className="size-4 mr-1" /> Nueva consumidor
+                <Plus className="size-4 mr-1" /> Nueva consumidora
               </Link>
             </Button>
           ) : null
@@ -139,7 +139,7 @@ export default function Consumers() {
             <p>No hay consumidores con esos criterios.</p>
             {user.role === "ba" && (
               <Button asChild variant="link" className="mt-2">
-                <Link to="/consumidores/nueva">Registrar nueva consumidor</Link>
+                <Link to="/consumidores/nueva">Registrar nueva consumidora</Link>
               </Button>
             )}
           </div>
@@ -182,7 +182,7 @@ export default function Consumers() {
       </Card>
 
       <p className="text-xs text-muted-foreground text-center">
-        Mostrando {list.length} consumidor{list.length === 1 ? "" : "s"}
+        Mostrando {list.length} consumidora{list.length === 1 ? "" : "s"}
       </p>
     </div>
   );

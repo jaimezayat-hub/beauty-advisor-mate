@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 type ArcoType = "acceso" | "rectificacion" | "cancelacion" | "oposicion";
 
 const OPTIONS: { value: ArcoType; label: string; desc: string }[] = [
-  { value: "acceso", label: "Acceso", desc: "La clienta solicita ver qué datos tenemos sobre ella." },
+  { value: "acceso", label: "Acceso", desc: "La cliente solicita ver qué datos tenemos sobre ella." },
   { value: "rectificacion", label: "Rectificación", desc: "Pide corregir datos personales incorrectos." },
   { value: "cancelacion", label: "Cancelación", desc: "Solicita eliminar sus datos de nuestros sistemas." },
   { value: "oposicion", label: "Oposición", desc: "Se opone a un uso específico de sus datos." },
