@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig, Sequence } from "remotion";
+import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
 import { C, display, body } from "../theme";
 import { PersistentBg, Eyebrow, RevealText, DeviceFrame, Avatar, Segment } from "../components/Primitives";
 
@@ -122,16 +122,14 @@ export const Scene1_Home: React.FC = () => {
         <div style={{ flex: 1.2, transform: `translateY(${drift}px)` }}>
           <DeviceFrame width={780} height={520}>
             <div style={{ padding: 28, height: "100%", display: "flex", flexDirection: "column", gap: 20 }}>
-              <Sequence from={20}>
-                <div>
-                  <div style={{ fontFamily: body, fontSize: 10, letterSpacing: "0.3em", color: C.muted, textTransform: "uppercase" }}>
-                    Miércoles · 3 de Junio
-                  </div>
-                  <div style={{ fontFamily: display, fontSize: 36, color: C.ink, marginTop: 4 }}>
-                    Buenos días, Sofia.
-                  </div>
+              <div style={{ opacity: spring({ frame: frame - 20, fps, config: { damping: 200 } }) }}>
+                <div style={{ fontFamily: body, fontSize: 10, letterSpacing: "0.3em", color: C.muted, textTransform: "uppercase" }}>
+                  Miércoles · 3 de Junio
                 </div>
-              </Sequence>
+                <div style={{ fontFamily: display, fontSize: 36, color: C.ink, marginTop: 4 }}>
+                  Buenos días, Sofia.
+                </div>
+              </div>
 
               <div style={{ display: "flex", gap: 12 }}>
                 <KpiCard label="Consumidoras" value="142" delta="+3 nuevas" delay={50} />
