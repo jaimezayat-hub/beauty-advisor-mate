@@ -76,7 +76,7 @@ export default function Consumers() {
           user.role === "ba" ? (
             <Button asChild size="lg">
               <Link to="/consumidores/nueva">
-                <Plus className="size-4 mr-1" /> Nueva consumidora
+                <Plus className="size-4 mr-1" /> Nuevo consumidor
               </Link>
             </Button>
           ) : null
