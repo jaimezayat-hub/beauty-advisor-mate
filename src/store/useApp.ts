@@ -49,6 +49,8 @@ interface AppState {
   updateConsumer: (id: string, patch: Partial<Consumer>) => void;
   addPurchase: (p: Purchase) => void;
   addAppointment: (a: Appointment) => void;
+  updateAppointment: (id: string, patch: Partial<Appointment>) => void;
+  deleteAppointment: (id: string) => void;
   addRecommendation: (r: Recommendation) => void;
   addFollowUp: (f: FollowUp) => void;
   addMessage: (m: Message) => void;
@@ -114,6 +116,12 @@ export const useApp = create<AppState>()(
           ),
         })),
       addAppointment: (a) => set((s) => ({ appointments: [a, ...s.appointments] })),
+      updateAppointment: (id, patch) =>
+        set((s) => ({
+          appointments: s.appointments.map((a) => (a.id === id ? { ...a, ...patch } : a)),
+        })),
+      deleteAppointment: (id) =>
+        set((s) => ({ appointments: s.appointments.filter((a) => a.id !== id) })),
       addRecommendation: (r) => set((s) => ({ recommendations: [r, ...s.recommendations] })),
       addFollowUp: (f) => set((s) => ({ followUps: [f, ...s.followUps] })),
       addMessage: (m) => set((s) => ({ messages: [m, ...s.messages] })),

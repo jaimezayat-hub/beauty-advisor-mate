@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApp, useCurrentUser } from "@/store/useApp";
 import { PageHeader } from "@/components/clienteling/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -8,14 +8,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConsumerPicker } from "@/components/clienteling/ConsumerPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Download, Plus, MessageCircle, UserCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Plus, MessageCircle, UserCheck, CalendarClock, Trash2, X } from "lucide-react";
 import type { Appointment, AppointmentStatus, AppointmentType, Consumer } from "@/lib/types";
 import { formatDate, fullName } from "@/lib/format";
 import { toast } from "sonner";
 import { downloadCSV } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
-import { useAppointmentsList, useCreateAppointment, useRealtimeInvalidate } from "@/lib/db/useAppointments";
+import {
+  useAppointmentsList,
+  useCreateAppointment,
+  useDeleteAppointment,
+  useRealtimeInvalidate,
+  useUpdateAppointment,
+} from "@/lib/db/useAppointments";
 
 const TYPES: AppointmentType[] = [
   "Servicio de Cabina",
@@ -39,13 +45,24 @@ const TYPE_COLORS: Record<AppointmentType, string> = {
 
 export default function Agenda() {
   const user = useCurrentUser()!;
-  const { appointments: seedAppointments, consumers, users, addAppointment, addMessage, isRealSession } = useApp();
+  const {
+    appointments: seedAppointments,
+    consumers,
+    users,
+    addAppointment,
+    updateAppointment,
+    deleteAppointment,
+    addMessage,
+    isRealSession,
+  } = useApp();
 
   const dbAppts = useAppointmentsList(
     { brand: user.role === "ba" ? user.brand : "all" },
     isRealSession,
   );
   const createAppt = useCreateAppointment();
+  const updateAppt = useUpdateAppointment();
+  const deleteAppt = useDeleteAppointment();
   useRealtimeInvalidate("appointments", ["appointments"], isRealSession);
   const appointments = isRealSession ? (dbAppts.data ?? []) : seedAppointments;
   const [confirmedIds, setConfirmedIds] = useState<Set<string>>(new Set());
@@ -55,6 +72,55 @@ export default function Agenda() {
   const [anchor, setAnchor] = useState(() => new Date());
   const [createOpen, setCreateOpen] = useState(false);
   const [defaultDate, setDefaultDate] = useState<Date | null>(null);
+  const [editing, setEditing] = useState<Appointment | null>(null);
+
+  const openDetails = (a: Appointment) => setEditing(a);
+
+  const handleSaveEdit = async (patch: Partial<Appointment>) => {
+    if (!editing) return;
+    try {
+      if (isRealSession) {
+        await updateAppt.mutateAsync({ id: editing.id, patch });
+      } else {
+        updateAppointment(editing.id, patch);
+      }
+      toast.success("Cita actualizada");
+      setEditing(null);
+    } catch (e: any) {
+      toast.error("No se pudo actualizar", { description: e?.message ?? String(e) });
+    }
+  };
+
+  const handleCancelAppt = async () => {
+    if (!editing) return;
+    try {
+      if (isRealSession) {
+        await updateAppt.mutateAsync({ id: editing.id, patch: { status: "Cancelada" } });
+      } else {
+        updateAppointment(editing.id, { status: "Cancelada" });
+      }
+      toast.success("Cita cancelada");
+      setEditing(null);
+    } catch (e: any) {
+      toast.error("No se pudo cancelar", { description: e?.message ?? String(e) });
+    }
+  };
+
+  const handleDeleteAppt = async () => {
+    if (!editing) return;
+    if (!confirm("¿Eliminar esta cita? Esta acción no se puede deshacer.")) return;
+    try {
+      if (isRealSession) {
+        await deleteAppt.mutateAsync(editing.id);
+      } else {
+        deleteAppointment(editing.id);
+      }
+      toast.success("Cita eliminada");
+      setEditing(null);
+    } catch (e: any) {
+      toast.error("No se pudo eliminar", { description: e?.message ?? String(e) });
+    }
+  };
 
   const visible = useMemo(
     () => appointments.filter((a) => (scope === "mias" ? a.baId === user.id : true)),
@@ -197,10 +263,15 @@ export default function Agenda() {
                       items.slice(0, 4).map((a) => {
                         const c = consumers.find((x) => x.id === a.consumerId);
                         return (
-                          <div
+                          <button
                             key={a.id}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDetails(a);
+                            }}
                             className={cn(
-                              "text-[10px] rounded px-1.5 py-1 border truncate",
+                              "text-[10px] rounded px-1.5 py-1 border truncate w-full text-left hover:brightness-95",
                               TYPE_COLORS[a.type],
                             )}
                           >
@@ -208,7 +279,7 @@ export default function Agenda() {
                               {new Date(a.date).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
                             </span>{" "}
                             {c ? `${c.firstName} ${c.lastName.charAt(0)}.` : ""}
-                          </div>
+                          </button>
                         );
                       })
                     )}
@@ -254,9 +325,20 @@ export default function Agenda() {
                   </p>
                   <div className="mt-1 space-y-0.5">
                     {items.slice(0, 2).map((a) => (
-                      <div key={a.id} className={cn("text-[9px] truncate rounded px-1 border", TYPE_COLORS[a.type])}>
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDetails(a);
+                        }}
+                        className={cn(
+                          "text-[9px] truncate rounded px-1 border w-full text-left hover:brightness-95",
+                          TYPE_COLORS[a.type],
+                        )}
+                      >
                         {new Date(a.date).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-                      </div>
+                      </button>
                     ))}
                     {items.length > 2 && <p className="text-[9px] text-muted-foreground">+{items.length - 2}</p>}
                   </div>
@@ -347,17 +429,28 @@ export default function Agenda() {
                         </td>
                         <td className="px-4 py-3 text-muted-foreground truncate max-w-[200px]">{a.notes ?? "—"}</td>
                         <td className="px-4 py-3 text-right">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={sent ? "ghost" : "outline"}
-                            disabled={!c || sent}
-                            onClick={confirm}
-                            className="text-xs h-8"
-                          >
-                            <MessageCircle className="size-3.5 mr-1" />
-                            {sent ? "Confirmada" : "Confirmar WhatsApp"}
-                          </Button>
+                          <div className="flex justify-end gap-1.5">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openDetails(a)}
+                              className="text-xs h-8"
+                            >
+                              <CalendarClock className="size-3.5 mr-1" /> Detalles
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={sent ? "ghost" : "outline"}
+                              disabled={!c || sent}
+                              onClick={confirm}
+                              className="text-xs h-8"
+                            >
+                              <MessageCircle className="size-3.5 mr-1" />
+                              {sent ? "Confirmada" : "Confirmar WhatsApp"}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -385,6 +478,17 @@ export default function Agenda() {
             toast.error("No se pudo crear la cita", { description: e?.message ?? String(e) });
           }
         }}
+      />
+
+      <EditAppointmentDialog
+        appointment={editing}
+        consumers={consumers}
+        onOpenChange={(b) => !b && setEditing(null)}
+        onSave={handleSaveEdit}
+        onCancelAppt={handleCancelAppt}
+        onDelete={handleDeleteAppt}
+        saving={updateAppt.isPending}
+        deleting={deleteAppt.isPending}
       />
     </div>
   );
@@ -518,6 +622,174 @@ function NewAppointmentDialog({
             <Button onClick={submit}>Crear cita</Button>
           </div>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditAppointmentDialog({
+  appointment,
+  consumers,
+  onOpenChange,
+  onSave,
+  onCancelAppt,
+  onDelete,
+  saving,
+  deleting,
+}: {
+  appointment: Appointment | null;
+  consumers: Consumer[];
+  onOpenChange: (b: boolean) => void;
+  onSave: (patch: Partial<Appointment>) => void;
+  onCancelAppt: () => void;
+  onDelete: () => void;
+  saving?: boolean;
+  deleting?: boolean;
+}) {
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("11:00");
+  const [type, setType] = useState<AppointmentType>("Servicio de Cabina");
+  const [status, setStatus] = useState<AppointmentStatus>("Confirmada");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (!appointment) return;
+    const dt = new Date(appointment.date);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    setDate(`${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`);
+    setTime(`${pad(dt.getHours())}:${pad(dt.getMinutes())}`);
+    setType(appointment.type);
+    setStatus(appointment.status);
+    setNotes(appointment.notes ?? "");
+  }, [appointment]);
+
+  const open = Boolean(appointment);
+  const consumer = appointment ? consumers.find((c) => c.id === appointment.consumerId) : null;
+
+  const submit = () => {
+    if (!appointment) return;
+    const dt = new Date(`${date}T${time}:00`);
+    const newIso = dt.toISOString();
+    const rescheduled = newIso !== appointment.date;
+    const patch: Partial<Appointment> = {
+      date: newIso,
+      type,
+      notes: notes || undefined,
+      status: rescheduled && status === appointment.status ? "Reagendada" : status,
+    };
+    onSave(patch);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Detalles de la cita</DialogTitle>
+        </DialogHeader>
+        {appointment && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-border p-3 bg-muted/30">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Consumidor
+              </p>
+              {consumer ? (
+                <Link
+                  to={`/consumidores/${consumer.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {fullName(consumer.firstName, consumer.lastName)}
+                </Link>
+              ) : (
+                <p className="font-medium">—</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Fecha</Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="h-11 mt-2"
+                />
+              </div>
+              <div>
+                <Label>Hora</Label>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="h-11 mt-2"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Tipo de evento</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {TYPES.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setType(t)}
+                    className={cn(
+                      "text-xs px-2.5 py-1 rounded-full border",
+                      type === t ? "bg-primary text-primary-foreground border-primary" : "border-border",
+                    )}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Estado</Label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as AppointmentStatus)}
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {(["Confirmada", "Pendiente", "Cancelada", "Reagendada", "Completada", "NoShow"] as AppointmentStatus[]).map(
+                  (s) => (<option key={s}>{s}</option>),
+                )}
+              </select>
+            </div>
+            <div>
+              <Label>Notas</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-2" />
+            </div>
+            <div className="flex flex-wrap justify-between gap-2 pt-2 border-t border-border">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onCancelAppt}
+                  disabled={saving || status === "Cancelada"}
+                >
+                  <X className="size-4 mr-1.5" /> Cancelar cita
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDelete}
+                  disabled={deleting}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="size-4 mr-1.5" /> Eliminar
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => onOpenChange(false)}>
+                  Cerrar
+                </Button>
+                <Button onClick={submit} disabled={saving}>
+                  Guardar cambios
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

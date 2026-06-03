@@ -3,6 +3,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { appointmentToInsert, mapAppointment } from "./mappers";
 import type { Appointment, Brand } from "@/lib/types";
+import type { Database } from "@/integrations/supabase/types";
+
+type ApptUpdate = Database["public"]["Tables"]["appointments"]["Update"];
+
+const APPT_TYPE_TO_DB: Record<Appointment["type"], ApptUpdate["type"]> = {
+  "Servicio de Cabina": "consulta",
+  "Facial": "makeover",
+  "Evento Aniversario": "evento",
+  "Cabina VIP": "makeover",
+  "Seguimiento de Productos": "follow_up",
+  "Masterclass": "evento",
+  "Otro": "consulta",
+};
+
+const APPT_STATUS_TO_DB: Record<Appointment["status"], ApptUpdate["status"]> = {
+  Confirmada: "confirmed",
+  Pendiente: "pending",
+  Cancelada: "cancelled",
+  Reagendada: "pending",
+  Completada: "done",
+  NoShow: "no_show",
+};
 
 export const appointmentsKey = (filters?: unknown) =>
   ["appointments", filters ?? {}] as const;
@@ -74,6 +96,50 @@ export function useUpdateAppointmentStatus() {
         .from("appointments")
         .update({ status: status as any })
         .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
+  });
+}
+
+export function useUpdateAppointment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: Partial<Appointment>;
+    }) => {
+      const row: ApptUpdate = {};
+      if (patch.date !== undefined) row.scheduled_at = patch.date;
+      if (patch.type !== undefined) {
+        row.type = APPT_TYPE_TO_DB[patch.type];
+        // preserve UI taxonomy in notes
+        if (patch.notes !== undefined) {
+          row.notes = patch.notes
+            ? `[type:${patch.type}] ${patch.notes}`
+            : `[type:${patch.type}]`;
+        } else {
+          row.notes = `[type:${patch.type}]`;
+        }
+      } else if (patch.notes !== undefined) {
+        row.notes = patch.notes;
+      }
+      if (patch.status !== undefined) row.status = APPT_STATUS_TO_DB[patch.status];
+      const { error } = await supabase.from("appointments").update(row).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
+  });
+}
+
+export function useDeleteAppointment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("appointments").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
