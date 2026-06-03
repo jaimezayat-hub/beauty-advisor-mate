@@ -86,7 +86,6 @@ export const Scene0_Open: React.FC = () => {
               fontSize: 16,
               letterSpacing: "0.35em",
               color: C.cream,
-              opacity: subIn * 0.7,
               textTransform: "uppercase",
               marginTop: 24,
             }}
