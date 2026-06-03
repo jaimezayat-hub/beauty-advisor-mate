@@ -627,6 +627,174 @@ function NewAppointmentDialog({
   );
 }
 
+function EditAppointmentDialog({
+  appointment,
+  consumers,
+  onOpenChange,
+  onSave,
+  onCancelAppt,
+  onDelete,
+  saving,
+  deleting,
+}: {
+  appointment: Appointment | null;
+  consumers: Consumer[];
+  onOpenChange: (b: boolean) => void;
+  onSave: (patch: Partial<Appointment>) => void;
+  onCancelAppt: () => void;
+  onDelete: () => void;
+  saving?: boolean;
+  deleting?: boolean;
+}) {
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("11:00");
+  const [type, setType] = useState<AppointmentType>("Servicio de Cabina");
+  const [status, setStatus] = useState<AppointmentStatus>("Confirmada");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (!appointment) return;
+    const dt = new Date(appointment.date);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    setDate(`${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`);
+    setTime(`${pad(dt.getHours())}:${pad(dt.getMinutes())}`);
+    setType(appointment.type);
+    setStatus(appointment.status);
+    setNotes(appointment.notes ?? "");
+  }, [appointment]);
+
+  const open = Boolean(appointment);
+  const consumer = appointment ? consumers.find((c) => c.id === appointment.consumerId) : null;
+
+  const submit = () => {
+    if (!appointment) return;
+    const dt = new Date(`${date}T${time}:00`);
+    const newIso = dt.toISOString();
+    const rescheduled = newIso !== appointment.date;
+    const patch: Partial<Appointment> = {
+      date: newIso,
+      type,
+      notes: notes || undefined,
+      status: rescheduled && status === appointment.status ? "Reagendada" : status,
+    };
+    onSave(patch);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Detalles de la cita</DialogTitle>
+        </DialogHeader>
+        {appointment && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-border p-3 bg-muted/30">
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Consumidor
+              </p>
+              {consumer ? (
+                <Link
+                  to={`/consumidores/${consumer.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {fullName(consumer.firstName, consumer.lastName)}
+                </Link>
+              ) : (
+                <p className="font-medium">—</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Fecha</Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="h-11 mt-2"
+                />
+              </div>
+              <div>
+                <Label>Hora</Label>
+                <Input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  className="h-11 mt-2"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Tipo de evento</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {TYPES.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setType(t)}
+                    className={cn(
+                      "text-xs px-2.5 py-1 rounded-full border",
+                      type === t ? "bg-primary text-primary-foreground border-primary" : "border-border",
+                    )}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Estado</Label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as AppointmentStatus)}
+                className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {(["Confirmada", "Pendiente", "Cancelada", "Reagendada", "Completada", "NoShow"] as AppointmentStatus[]).map(
+                  (s) => (<option key={s}>{s}</option>),
+                )}
+              </select>
+            </div>
+            <div>
+              <Label>Notas</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-2" />
+            </div>
+            <div className="flex flex-wrap justify-between gap-2 pt-2 border-t border-border">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onCancelAppt}
+                  disabled={saving || status === "Cancelada"}
+                >
+                  <X className="size-4 mr-1.5" /> Cancelar cita
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDelete}
+                  disabled={deleting}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="size-4 mr-1.5" /> Eliminar
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => onOpenChange(false)}>
+                  Cerrar
+                </Button>
+                <Button onClick={submit} disabled={saving}>
+                  Guardar cambios
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // date helpers
 function startOfWeek(d: Date) {
   const r = new Date(d);
