@@ -80,6 +80,39 @@ export function useUpdateAppointmentStatus() {
   });
 }
 
+export function useUpdateAppointment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: Partial<Appointment>;
+    }) => {
+      const row: Record<string, unknown> = {};
+      if (patch.date !== undefined) row.scheduled_at = patch.date;
+      if (patch.type !== undefined) row.appointment_type = patch.type;
+      if (patch.status !== undefined) row.status = patch.status as any;
+      if (patch.notes !== undefined) row.notes = patch.notes;
+      const { error } = await supabase.from("appointments").update(row).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
+  });
+}
+
+export function useDeleteAppointment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("appointments").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["appointments"] }),
+  });
+}
+
 /** Suscripción realtime que invalida queries al cambiar la tabla. */
 export function useRealtimeInvalidate(
   table: "appointments" | "follow_ups" | "visits" | "notifications",
