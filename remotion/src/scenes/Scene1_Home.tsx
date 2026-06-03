@@ -158,9 +158,9 @@ export const Scene1_Home: React.FC = () => {
                 >
                   Hoy en cabina
                 </div>
-                <ApptRow time="11:00" name="Mariana López" type="Facial Génifique" segment="VIP" delay={120} tone={C.gold} />
-                <ApptRow time="13:30" name="Carla Méndez" type="Cabina VIP" segment="Recurrente" delay={150} tone={C.green} />
-                <ApptRow time="16:00" name="Ana Ruiz" type="Seguimiento" segment="Nueva" delay={180} tone={C.nude} />
+                <ApptRow time="11:00" name="Mariana López" type="Facial Génifique" segment="VIP" delay={100} tone={C.gold} />
+                <ApptRow time="13:30" name="Carla Méndez" type="Cabina VIP" segment="Recurrente" delay={120} tone={C.green} />
+                <ApptRow time="16:00" name="Ana Ruiz" type="Seguimiento" segment="Nueva" delay={140} tone={C.nude} />
               </div>
             </div>
           </DeviceFrame>
